@@ -29,6 +29,7 @@ cp .env.example .env
 ```
 
 `.env` contents:
+
 ```
 PUSHOVER_USER_KEY=your_user_key_here
 PUSHOVER_API_TOKEN=your_api_token_here
@@ -78,26 +79,31 @@ This creates `data/state.json` with historical data. No alerts are sent on first
 The script calculates the **growth rate difference** (r_t - r̄_n), which measures whether growth is accelerating or decelerating:
 
 **Formula:**
+
 ```
 growth_diff = log(P_t) - ((n+1)/n) × log(P_{t-1}) + (1/n) × log(P_{t-n})
 ```
 
 Where:
+
 - `P_t` = new value (current price)
 - `P_{t-1}` = most recent historical price
 - `P_{t-n}` = price from n periods ago
 - `log` = natural logarithm
 
 This can be rewritten as:
+
 ```
 r_t - r̄_n = [log(P_t) - log(P_{t-1})] - (1/n) × [log(P_{t-1}) - log(P_{t-n})]
 ```
 
 Where:
+
 - `r_t` = current period's growth rate
 - `r̄_n` = average growth rate over previous n periods
 
 **Example** (indicator 6106 with `n_periods=3`, `threshold=10%`):
+
 - P_t = $15.13 (Dec 2025, new value)
 - P_{t-1} = $10.69 (Nov 2025)
 - P_{t-3} = $4.11 (Sep 2025)
@@ -109,6 +115,7 @@ Where:
 ### State Management
 
 The script maintains `data/state.json` to track:
+
 - Last seen datapoint per indicator
 - Historical values for growth calculation (trimmed to prevent unbounded growth)
 
@@ -117,17 +124,21 @@ The script maintains `data/state.json` to track:
 ## Usage
 
 ### Normal Run
+
 ```bash
 python3 scripts/fetch_trendforce.py --config config/industry_ids.yaml --insecure
 ```
 
 ### Dry-Run (Testing)
+
 ```bash
 python3 scripts/fetch_trendforce.py --config config/industry_ids.yaml --dry-run --insecure
 ```
+
 Performs all checks but skips sending Pushover notifications.
 
 ### Command-Line Options
+
 ```
 --config CONFIG          Path to YAML config file (default: config/industry_ids.yaml)
 --concurrency N          Max parallel workers (default: 4)
@@ -143,7 +154,7 @@ Performs all checks but skips sending Pushover notifications.
 
 This project is designed to run on Android via Termux with automated deployment scripts.
 
-📱 **[Quick Start Guide](deploy/QUICKSTART.md)** | 📚 **[Detailed Setup](deploy/README.md)**
+📱 **[Detailed Setup](deploy/README.md)**
 
 **Quick deployment:**
 
@@ -159,6 +170,7 @@ cd ~/mm-termux-node
 ```
 
 **Deployment tools:**
+
 - `deploy/push.sh` - Deploy/sync files to phone
 - `deploy/setup_cron.sh` - Setup automated scheduling on phone
 - `deploy/view_logs.sh` - View logs remotely from computer
@@ -177,6 +189,7 @@ cd ~/mm-termux-node
 ```
 
 **Manual setup:**
+
 ```bash
 # Install cron
 pkg install cronie termux-services
@@ -199,6 +212,7 @@ tail -f ~/mm-termux-node/logs/scraper.log
 ```
 
 ### Linux/macOS
+
 ```bash
 crontab -e
 ```
@@ -212,12 +226,15 @@ Example entry:
 ## Testing
 
 ### Simulate New Datapoint
+
 1. Edit `data/state.json`: set `last_check_date` to an older date
 2. Run with `--dry-run` to see what would happen
 3. Check logs for growth calculation and alert decision
 
 ### Verify Alert Message
+
 Example notification when threshold exceeded:
+
 ```
 Title: TrendForce Alert: Mainstream NAND Flash Wafer Spot Price
 
@@ -231,19 +248,25 @@ Date: 2025-12-31
 ## Troubleshooting
 
 ### SSL Certificate Errors
+
 If you see `[SSL: CERTIFICATE_VERIFY_FAILED]`, use the `--insecure` flag:
+
 ```bash
 python3 scripts/fetch_trendforce.py --config config/industry_ids.yaml --insecure
 ```
 
 ### Missing .env File
+
 ```
 [ERROR] Failed to load environment: Environment file not found: .env
 ```
+
 Create `.env` file with Pushover credentials (see step 2 above).
 
 ### State File Corrupted
+
 If `state.json` is corrupted, simply delete it and run again to reinitialize:
+
 ```bash
 rm data/state.json
 python3 scripts/fetch_trendforce.py --config config/industry_ids.yaml --dry-run --insecure
