@@ -1,0 +1,79 @@
+# TrendForce alert monitor config
+
+# Indicator list
+indicator_ids:
+  - 6106
+  
+  # - 1234  # Add more as needed
+
+# Default alert parameters
+default_threshold: 50.0    # Relative threshold: alert when growth differs by >50% from average
+default_n_periods: 3
+
+# Per-indicator overrides (optional)
+# indicator_6106_threshold: 10.0
+# indicator_6106_n_periods: 3
+
+# Connection settings
+concurrency: 4
+timeout: 30
+retries: 3
+backoff_base: 1.5
+
+# Paths
+state_file: data/state.json
+env_file: .env
+
+
+# ─── Custom Signals ───────────────────────────────────────────
+# Define cross-indicator calculations that trigger alerts.
+# Uses flat key convention: signal_{name}_{param}
+#
+# Supported types:
+#   growth_diff    - difference between two indicators' growth rates
+#   ratio          - ratio of two indicators' current values
+#   composite_avg  - average growth rate across multiple indicators
+#   weighted_avg   - weighted average growth rate
+#
+# To enable, uncomment signal_names and the signal definition blocks below.
+#
+# signal_names:
+#   - dram_nand_spread
+#   - dram_capex_ratio
+#   - semi_regional_avg
+#   - memory_index
+#
+# --- growth_diff: alert when DRAM and NAND growth rates diverge ---
+# signal_dram_nand_spread_type: growth_diff
+# signal_dram_nand_spread_indicator_a: 6105
+# signal_dram_nand_spread_indicator_b: 6106
+# signal_dram_nand_spread_threshold: 30.0
+# signal_dram_nand_spread_n_periods: 3
+#
+# --- ratio: alert when DRAM capex-to-revenue ratio leaves bounds ---
+# signal_dram_capex_ratio_type: ratio
+# signal_dram_capex_ratio_numerator: 205
+# signal_dram_capex_ratio_denominator: 199
+# signal_dram_capex_ratio_threshold_min: 0.15
+# signal_dram_capex_ratio_threshold_max: 0.40
+#
+# --- composite_avg: average growth across WSTS regional sales ---
+# signal_semi_regional_avg_type: composite_avg
+# signal_semi_regional_avg_indicators:
+#   - 1846
+#   - 1847
+#   - 1848
+#   - 1849
+# signal_semi_regional_avg_threshold: 40.0
+# signal_semi_regional_avg_n_periods: 3
+#
+# --- weighted_avg: weighted memory market index ---
+# signal_memory_index_type: weighted_avg
+# signal_memory_index_indicators:
+#   - 199
+#   - 273
+# signal_memory_index_weights:
+#   - 0.6
+#   - 0.4
+# signal_memory_index_threshold: 35.0
+# signal_memory_index_n_periods: 3

@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import math
 import os
 import sys
 import time
@@ -23,6 +24,13 @@ DEFAULT_HEADERS = {
 }
 
 LOGGER = logging.getLogger("trendforce_fetch")
+
+# Signal types
+SIGNAL_GROWTH_DIFF = "growth_diff"
+SIGNAL_RATIO = "ratio"
+SIGNAL_COMPOSITE_AVG = "composite_avg"
+SIGNAL_WEIGHTED_AVG = "weighted_avg"
+VALID_SIGNAL_TYPES = {SIGNAL_GROWTH_DIFF, SIGNAL_RATIO, SIGNAL_COMPOSITE_AVG, SIGNAL_WEIGHTED_AVG}
 
 
 class ConfigError(ValueError):
@@ -84,6 +92,94 @@ def load_yaml_config(path: str) -> dict:
             raise ConfigError(f"Invalid config line: {raw_line.strip()}")
 
     return data
+
+
+def parse_signal_configs(config: dict) -> dict:
+    """Parse custom signal configurations from flat YAML keys.
+
+    Expected config format:
+        signal_names:
+          - dram_nand_spread
+        signal_dram_nand_spread_type: growth_diff
+        signal_dram_nand_spread_indicator_a: 6105
+        signal_dram_nand_spread_indicator_b: 6106
+        signal_dram_nand_spread_threshold: 30.0
+        signal_dram_nand_spread_n_periods: 3
+
+    Returns dict of signal_name -> signal_config.
+    """
+    signal_names = config.get("signal_names")
+    if not signal_names:
+        return {}
+    if not isinstance(signal_names, list):
+        raise ConfigError("signal_names must be a list")
+
+    signals = {}
+    for name in signal_names:
+        name = str(name)
+        prefix = f"signal_{name}_"
+
+        sig_type = config.get(f"{prefix}type")
+        if not sig_type:
+            raise ConfigError(f"Signal '{name}' missing required field: type")
+        sig_type = str(sig_type)
+        if sig_type not in VALID_SIGNAL_TYPES:
+            raise ConfigError(
+                f"Signal '{name}' invalid type '{sig_type}'. "
+                f"Valid: {', '.join(sorted(VALID_SIGNAL_TYPES))}"
+            )
+
+        sig_config = {
+            "name": name,
+            "type": sig_type,
+            "description": str(config.get(f"{prefix}description") or name),
+            "threshold": float(config.get(f"{prefix}threshold") or 50.0),
+            "n_periods": int(config.get(f"{prefix}n_periods") or 3),
+        }
+
+        if sig_type == SIGNAL_GROWTH_DIFF:
+            a = config.get(f"{prefix}indicator_a")
+            b = config.get(f"{prefix}indicator_b")
+            if a is None or b is None:
+                raise ConfigError(f"Signal '{name}' (growth_diff) requires indicator_a and indicator_b")
+            sig_config["indicator_a"] = int(a)
+            sig_config["indicator_b"] = int(b)
+            sig_config["dependencies"] = [int(a), int(b)]
+
+        elif sig_type == SIGNAL_RATIO:
+            num = config.get(f"{prefix}numerator")
+            den = config.get(f"{prefix}denominator")
+            if num is None or den is None:
+                raise ConfigError(f"Signal '{name}' (ratio) requires numerator and denominator")
+            sig_config["numerator"] = int(num)
+            sig_config["denominator"] = int(den)
+            sig_config["threshold_min"] = float(config.get(f"{prefix}threshold_min") or 0.0)
+            sig_config["threshold_max"] = float(config.get(f"{prefix}threshold_max") or float("inf"))
+            sig_config["dependencies"] = [int(num), int(den)]
+
+        elif sig_type == SIGNAL_COMPOSITE_AVG:
+            indicators = config.get(f"{prefix}indicators")
+            if not indicators or not isinstance(indicators, list):
+                raise ConfigError(f"Signal '{name}' (composite_avg) requires indicators list")
+            sig_config["indicators"] = [int(i) for i in indicators]
+            sig_config["dependencies"] = sig_config["indicators"]
+
+        elif sig_type == SIGNAL_WEIGHTED_AVG:
+            indicators = config.get(f"{prefix}indicators")
+            weights = config.get(f"{prefix}weights")
+            if not indicators or not isinstance(indicators, list):
+                raise ConfigError(f"Signal '{name}' (weighted_avg) requires indicators list")
+            if not weights or not isinstance(weights, list):
+                raise ConfigError(f"Signal '{name}' (weighted_avg) requires weights list")
+            if len(indicators) != len(weights):
+                raise ConfigError(f"Signal '{name}' (weighted_avg): indicators and weights must be same length")
+            sig_config["indicators"] = [int(i) for i in indicators]
+            sig_config["weights"] = [float(w) for w in weights]
+            sig_config["dependencies"] = sig_config["indicators"]
+
+        signals[name] = sig_config
+
+    return signals
 
 
 def _build_url(base_url: str, indicator_id: str | int) -> str:
@@ -253,8 +349,6 @@ def calculate_growth(new_value: float, history: list[dict], n_periods: int) -> f
     if P_t <= 0 or P_t_minus_1 <= 0 or P_t_minus_n <= 0:
         return None
 
-    import math
-
     # Calculate current period's growth rate
     r_t = math.log(P_t) - math.log(P_t_minus_1)
 
@@ -271,6 +365,109 @@ def calculate_growth(new_value: float, history: list[dict], n_periods: int) -> f
     relative_diff = ((r_t - r_bar_n) / r_bar_n) * 100
 
     return relative_diff
+
+
+def _get_indicator_growth(indicator_id: int, state: dict, n_periods: int) -> float | None:
+    """Get the current growth rate for an indicator from state."""
+    ind_state = state["indicators"].get(str(indicator_id))
+    if not ind_state:
+        return None
+
+    last_value = ind_state.get("last_check_value")
+    if last_value is None:
+        return None
+
+    history = ind_state.get("history", [])
+    return calculate_growth(float(last_value), history, n_periods)
+
+
+def _calculate_growth_diff(signal_config: dict, state: dict) -> float | None:
+    """Calculate difference between two indicators' growth rates."""
+    n_periods = signal_config["n_periods"]
+    growth_a = _get_indicator_growth(signal_config["indicator_a"], state, n_periods)
+    growth_b = _get_indicator_growth(signal_config["indicator_b"], state, n_periods)
+
+    if growth_a is None or growth_b is None:
+        return None
+
+    return growth_a - growth_b
+
+
+def _calculate_ratio(signal_config: dict, state: dict) -> float | None:
+    """Calculate ratio between two indicators' current values."""
+    num_state = state["indicators"].get(str(signal_config["numerator"]))
+    den_state = state["indicators"].get(str(signal_config["denominator"]))
+
+    if not num_state or not den_state:
+        return None
+
+    num_val = num_state.get("last_check_value")
+    den_val = den_state.get("last_check_value")
+
+    if num_val is None or den_val is None:
+        return None
+
+    den_float = float(den_val)
+    if abs(den_float) < 1e-10:
+        return None
+
+    return float(num_val) / den_float
+
+
+def _calculate_composite_avg(signal_config: dict, state: dict) -> float | None:
+    """Calculate average growth rate across multiple indicators."""
+    n_periods = signal_config["n_periods"]
+    growth_rates = []
+
+    for ind_id in signal_config["indicators"]:
+        growth = _get_indicator_growth(ind_id, state, n_periods)
+        if growth is not None:
+            growth_rates.append(growth)
+
+    if not growth_rates:
+        return None
+
+    return sum(growth_rates) / len(growth_rates)
+
+
+def _calculate_weighted_avg(signal_config: dict, state: dict) -> float | None:
+    """Calculate weighted average growth rate across multiple indicators."""
+    n_periods = signal_config["n_periods"]
+    total_weight = 0.0
+    weighted_sum = 0.0
+
+    for ind_id, weight in zip(signal_config["indicators"], signal_config["weights"]):
+        growth = _get_indicator_growth(ind_id, state, n_periods)
+        if growth is not None:
+            weighted_sum += growth * weight
+            total_weight += weight
+
+    if total_weight < 1e-10:
+        return None
+
+    return weighted_sum / total_weight
+
+
+_SIGNAL_CALCULATORS = {
+    SIGNAL_GROWTH_DIFF: _calculate_growth_diff,
+    SIGNAL_RATIO: _calculate_ratio,
+    SIGNAL_COMPOSITE_AVG: _calculate_composite_avg,
+    SIGNAL_WEIGHTED_AVG: _calculate_weighted_avg,
+}
+
+
+def calculate_signal(signal_config: dict, state: dict) -> float | None:
+    """Calculate signal value based on type."""
+    calc_fn = _SIGNAL_CALCULATORS.get(signal_config["type"])
+    if calc_fn is None:
+        LOGGER.error("Unknown signal type: %s", signal_config["type"])
+        return None
+
+    try:
+        return calc_fn(signal_config, state)
+    except (ValueError, TypeError, ZeroDivisionError) as exc:
+        LOGGER.error("Signal '%s' calculation failed: %s", signal_config["name"], exc)
+        return None
 
 
 def send_pushover_notification(
@@ -324,6 +521,47 @@ def format_alert_message(
         f"New value: {new_value:.3f} {unit}\n"
         f"Date: {date[:10]}"  # Just YYYY-MM-DD
     )
+    return title, message
+
+
+def format_signal_alert_message(
+    signal_name: str,
+    signal_config: dict,
+    signal_value: float,
+    state: dict,
+) -> tuple[str, str]:
+    """Format Pushover notification for a custom signal."""
+    title = f"TrendForce Signal: {signal_config.get('description', signal_name)}"
+
+    sig_type = signal_config["type"]
+
+    # Build dependency context
+    dep_lines = []
+    for dep_id in signal_config.get("dependencies", []):
+        dep_state = state["indicators"].get(str(dep_id))
+        if dep_state:
+            dep_name = dep_state.get("indicator_name", str(dep_id))
+            dep_val = dep_state.get("last_check_value", "?")
+            dep_unit = dep_state.get("unit", "")
+            dep_lines.append(f"  {dep_name} ({dep_id}): {dep_val} {dep_unit}")
+
+    if sig_type == SIGNAL_RATIO:
+        threshold_str = (
+            f"bounds: [{signal_config.get('threshold_min', 0):.2f}, "
+            f"{signal_config.get('threshold_max', float('inf')):.2f}]"
+        )
+    else:
+        threshold_str = f"threshold: {signal_config['threshold']:.1f}%"
+
+    message = (
+        f"Signal: {signal_name} ({sig_type})\n"
+        f"Value: {signal_value:.2f}\n"
+        f"Config: {threshold_str}\n"
+    )
+
+    if dep_lines:
+        message += "\nDependencies:\n" + "\n".join(dep_lines)
+
     return title, message
 
 
@@ -412,6 +650,65 @@ def initialize_indicator_state(
     )
 
 
+def migrate_state(state: dict) -> dict:
+    """Migrate state to latest version (adds signals section)."""
+    version = state.get("version", 1)
+    if version < 2:
+        state.setdefault("signals", {})
+        state["version"] = 2
+        LOGGER.info("Migrated state from v%d to v2", version)
+    return state
+
+
+def check_signal_threshold(signal_value: float, signal_config: dict) -> bool:
+    """Check if signal value exceeds configured threshold."""
+    if signal_config["type"] == SIGNAL_RATIO:
+        threshold_min = signal_config.get("threshold_min", 0.0)
+        threshold_max = signal_config.get("threshold_max", float("inf"))
+        return signal_value < threshold_min or signal_value > threshold_max
+
+    return abs(signal_value) > signal_config["threshold"]
+
+
+def update_signal_state(
+    state: dict,
+    signal_name: str,
+    signal_config: dict,
+    signal_value: float,
+    date: str,
+    max_history: int = 20,
+) -> None:
+    """Update state with new signal value."""
+    state.setdefault("signals", {})
+
+    if signal_name not in state["signals"]:
+        state["signals"][signal_name] = {
+            "signal_name": signal_name,
+            "signal_type": signal_config["type"],
+            "description": signal_config.get("description", ""),
+            "dependencies": signal_config.get("dependencies", []),
+            "last_check_date": None,
+            "last_check_value": None,
+            "history": [],
+        }
+
+    sig_state = state["signals"][signal_name]
+
+    # Move previous last_check to history
+    if sig_state["last_check_value"] is not None:
+        sig_state["history"].append({
+            "date": sig_state["last_check_date"],
+            "value": sig_state["last_check_value"],
+        })
+
+    sig_state["last_check_date"] = date
+    sig_state["last_check_value"] = signal_value
+
+    # Trim history
+    if len(sig_state["history"]) > max_history:
+        sig_state["history"] = sig_state["history"][-max_history:]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Monitor TrendForce indicators and send alerts")
     parser.add_argument(
@@ -464,6 +761,11 @@ def main() -> int:
             "threshold": float(config.get(f"indicator_{ind_id}_threshold") or default_threshold),
             "n_periods": int(config.get(f"indicator_{ind_id}_n_periods") or default_n_periods),
         }
+
+    # Parse custom signal configs
+    signal_configs = parse_signal_configs(config)
+    if signal_configs:
+        LOGGER.info("Loaded %d custom signal(s): %s", len(signal_configs), ", ".join(signal_configs))
 
     # Load environment variables
     env_file = config.get("env_file", ".env")
@@ -635,6 +937,59 @@ def main() -> int:
 
             # Update indicator state
             update_indicator_state(state, indicator_id, new_rows, metadata, max_history)
+
+    # --- Custom signal processing ---
+    if signal_configs and not is_first_run:
+        state = migrate_state(state)
+        LOGGER.info("Processing %d custom signal(s)", len(signal_configs))
+
+        for sig_name, sig_config in signal_configs.items():
+            # Check all dependencies exist in state
+            missing = [
+                str(d) for d in sig_config.get("dependencies", [])
+                if str(d) not in state["indicators"]
+            ]
+            if missing:
+                LOGGER.warning(
+                    "Signal '%s': missing dependency indicators: %s (skipping)",
+                    sig_name, ", ".join(missing),
+                )
+                continue
+
+            signal_value = calculate_signal(sig_config, state)
+
+            if signal_value is None:
+                LOGGER.warning("Signal '%s': calculation returned None", sig_name)
+                continue
+
+            LOGGER.info("Signal '%s': value = %.2f", sig_name, signal_value)
+
+            if check_signal_threshold(signal_value, sig_config):
+                title, message = format_signal_alert_message(
+                    sig_name, sig_config, signal_value, state,
+                )
+
+                if args.dry_run:
+                    LOGGER.info("[DRY RUN] Would send signal alert: %s", title)
+                else:
+                    success = send_pushover_notification(
+                        pushover_user, pushover_token, message, title, timeout,
+                    )
+                    if success:
+                        LOGGER.info("Signal alert sent: %s", sig_name)
+                        alerts_sent += 1
+                    else:
+                        LOGGER.error("Failed to send signal alert: %s", sig_name)
+
+            # Determine date from latest dependency update
+            dep_dates = [
+                state["indicators"][str(d)]["last_check_date"]
+                for d in sig_config.get("dependencies", [])
+                if state["indicators"].get(str(d), {}).get("last_check_date")
+            ]
+            latest_date = max(dep_dates) if dep_dates else datetime.now(timezone.utc).isoformat()
+
+            update_signal_state(state, sig_name, sig_config, signal_value, latest_date)
 
     # Save state
     try:

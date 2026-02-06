@@ -1,4 +1,6 @@
 .claude/
+config/*
+!config/*.example
 
 # Logs
 logs/
