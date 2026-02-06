@@ -46,7 +46,7 @@ indicator_ids:
   # - 1234  # Add more as needed
 
 # Default alert parameters
-default_threshold: 10.0     # Alert when change exceeds 10%
+default_threshold: 50.0     # Alert when change exceeds 50% (relative to historical avg)
 default_n_periods: 3        # Compare against 3-period average
 
 # Per-indicator overrides (optional)
@@ -74,43 +74,37 @@ This creates `data/state.json` with historical data. No alerts are sent on first
 
 ## How It Works
 
-### Growth Rate Difference Calculation
+### Relative Growth Rate Difference Calculation
 
-The script calculates the **growth rate difference** (r_t - r̄_n), which measures whether growth is accelerating or decelerating:
+The script calculates the **relative growth rate difference** `(r_t - r̄_n) / r̄_n × 100`, which measures how much the current growth rate differs from the historical average as a percentage.
+
+**Why relative?** This normalizes the difference by the historical average, making thresholds comparable across indicators with different volatility levels. A threshold of 50% means "alert when current growth is 50% different from normal," regardless of the indicator.
 
 **Formula:**
 
 ```
-growth_diff = log(P_t) - ((n+1)/n) × log(P_{t-1}) + (1/n) × log(P_{t-n})
+relative_diff = (r_t - r̄_n) / r̄_n × 100
 ```
 
 Where:
 
+- `r_t = log(P_t) - log(P_{t-1})` (current period's growth rate)
+- `r̄_n = (1/n) × [log(P_{t-1}) - log(P_{t-n})]` (average growth rate over n periods)
 - `P_t` = new value (current price)
 - `P_{t-1}` = most recent historical price
 - `P_{t-n}` = price from n periods ago
 - `log` = natural logarithm
 
-This can be rewritten as:
-
-```
-r_t - r̄_n = [log(P_t) - log(P_{t-1})] - (1/n) × [log(P_{t-1}) - log(P_{t-n})]
-```
-
-Where:
-
-- `r_t` = current period's growth rate
-- `r̄_n` = average growth rate over previous n periods
-
-**Example** (indicator 6106 with `n_periods=3`, `threshold=10%`):
+**Example** (indicator 6106 with `n_periods=3`, `threshold=50%`):
 
 - P_t = $15.13 (Dec 2025, new value)
 - P_{t-1} = $10.69 (Nov 2025)
 - P_{t-3} = $4.11 (Sep 2025)
-- Current growth: log(15.13) - log(10.69) = 0.348
-- Average past growth: (1/3) × [log(10.69) - log(4.11)] = 0.293
-- **Growth difference: 0.348 - 0.293 = 0.055 → 5.5%**
-- Alert sent if |5.5%| > threshold
+- Current growth: r_t = log(15.13) - log(10.69) = 0.348 (34.8%)
+- Average past growth: r̄_3 = (1/3) × [log(10.69) - log(4.11)] = 0.293 (29.3%)
+- **Relative difference: (0.348 - 0.293) / 0.293 × 100 = 18.8%**
+- No alert sent (18.8% < 50% threshold)
+- Interpretation: "Current growth is 18.8% higher than the historical average"
 
 ### State Management
 

@@ -227,16 +227,19 @@ def get_new_datapoints(rows: list[dict], indicator_state: dict | None) -> list[d
 
 
 def calculate_growth(new_value: float, history: list[dict], n_periods: int) -> float | None:
-    """Calculate growth rate difference: r_t - r̄_n.
+    """Calculate relative growth rate difference: (r_t - r̄_n) / r̄_n × 100.
 
-    Formula: log(P_t) - ((n+1)/n)*log(P_{t-1}) + (1/n)*log(P_{t-n})
+    This normalizes the difference by the historical average growth rate,
+    making thresholds comparable across indicators with different volatility.
 
     Where:
+    - r_t = log(P_t) - log(P_{t-1}) (current period's growth rate)
+    - r̄_n = (1/n) × [log(P_{t-1}) - log(P_{t-n})] (average historical growth rate)
     - P_t = new_value (current price)
     - P_{t-1} = history[-1] (most recent historical price)
     - P_{t-n} = history[-n] (price from n periods ago)
 
-    Returns None if insufficient history (need at least n values).
+    Returns None if insufficient history (need at least n values) or if r̄_n ≈ 0.
     """
     if len(history) < n_periods:
         return None
@@ -252,20 +255,22 @@ def calculate_growth(new_value: float, history: list[dict], n_periods: int) -> f
 
     import math
 
-    # Calculate growth rate difference
-    # Formula: log(P_t) - ((n+1)/n)*log(P_{t-1}) + (1/n)*log(P_{t-n})
-    log_P_t = math.log(P_t)
-    log_P_t_minus_1 = math.log(P_t_minus_1)
-    log_P_t_minus_n = math.log(P_t_minus_n)
+    # Calculate current period's growth rate
+    r_t = math.log(P_t) - math.log(P_t_minus_1)
 
-    growth_diff = (
-        log_P_t
-        - ((n_periods + 1) / n_periods) * log_P_t_minus_1
-        + (1 / n_periods) * log_P_t_minus_n
-    )
+    # Calculate average historical growth rate
+    r_bar_n = (1 / n_periods) * (math.log(P_t_minus_1) - math.log(P_t_minus_n))
 
-    # Convert to percentage (multiply by 100)
-    return growth_diff * 100
+    # Avoid division by zero or very small values
+    if abs(r_bar_n) < 1e-10:
+        # If historical average growth is essentially zero, return the absolute difference
+        # This handles cases where prices have been stable
+        return (r_t - r_bar_n) * 100
+
+    # Calculate relative difference: (r_t - r̄_n) / r̄_n × 100
+    relative_diff = ((r_t - r_bar_n) / r_bar_n) * 100
+
+    return relative_diff
 
 
 def send_pushover_notification(
