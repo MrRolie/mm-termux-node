@@ -1,7 +1,12 @@
 #!/bin/bash
 # View logs from the phone remotely
 
-# Configuration
+# Load configuration from .env file
+if [ -f "$(dirname "$0")/../.env" ]; then
+    source "$(dirname "$0")/../.env"
+fi
+
+# Use environment variables with fallbacks
 PHONE_USER="${PHONE_USER:-u0_a259}"
 PHONE_IP="${PHONE_IP:-192.168.1.100}"
 PHONE_PORT="${PHONE_PORT:-8022}"

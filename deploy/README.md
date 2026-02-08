@@ -9,12 +9,14 @@ This directory contains scripts for deploying the TrendForce Alert Monitor to yo
 1. **Install Termux** from F-Droid (not Google Play)
 
 2. **Install required packages:**
+
    ```bash
    pkg update
    pkg install python openssh
    ```
 
 3. **Setup SSH server:**
+
    ```bash
    # Set a password for SSH
    passwd
@@ -26,6 +28,7 @@ This directory contains scripts for deploying the TrendForce Alert Monitor to yo
    ```
 
 4. **Find your phone's IP address:**
+
    ```bash
    ifconfig wlan0 | grep inet
    # Or use: ip addr show wlan0
@@ -34,6 +37,7 @@ This directory contains scripts for deploying the TrendForce Alert Monitor to yo
 ### On Your Computer
 
 1. **Update deployment configuration** in `deploy/push.sh`:
+
    ```bash
    export PHONE_IP="192.168.1.XXX"  # Your phone's IP
    export PHONE_PORT="8022"          # Termux SSH port (default)
@@ -53,6 +57,7 @@ chmod +x deploy/push.sh
 ```
 
 This will:
+
 - Create necessary directories on your phone
 - Transfer scripts and configuration
 - Set proper permissions
@@ -85,6 +90,26 @@ Run a dry-run test:
 python scripts/fetch_trendforce.py --config config/industry_ids.yaml --dry-run --insecure
 ```
 
+### Test Pushover notifications
+
+You can test Pushover notifications either on the phone or locally from your computer.
+
+Local test (from your computer):
+
+```bash
+chmod +x deploy/test_pushover_local.sh
+./deploy/test_pushover_local.sh
+```
+
+Remote test (on the phone):
+
+```bash
+chmod +x deploy/test_pushover.sh
+./deploy/test_pushover.sh
+```
+
+Both scripts will print the Pushover API response (look for `"status":1` for success) and will fail with a helpful message if keys are missing or curl/python are not available. Be sure your `.env` contains `PUSHOVER_USER_KEY` and `PUSHOVER_API_TOKEN` and is secured with `chmod 600`.
+
 ### 4. Setup Automated Scheduling
 
 Run the cron setup script:
@@ -95,6 +120,7 @@ chmod +x deploy/setup_cron.sh
 ```
 
 This will:
+
 - Install cronie if needed
 - Create a cron job to run daily at 02:05 AM
 - Log output to `logs/scraper.log`
@@ -140,18 +166,21 @@ This will sync the latest files to your phone.
 ### SSH Connection Issues
 
 1. **Check phone's IP hasn't changed:**
+
    ```bash
    # On phone
    ifconfig wlan0 | grep inet
    ```
 
 2. **Verify SSH is running:**
+
    ```bash
    # On phone
    sshd
    ```
 
 3. **Test SSH connection:**
+
    ```bash
    # From computer
    ssh -p 8022 u0_a259@YOUR_PHONE_IP
@@ -160,12 +189,14 @@ This will sync the latest files to your phone.
 ### Script Errors
 
 1. **Check Python version:**
+
    ```bash
    # On phone
    python --version  # Should be 3.7+
    ```
 
 2. **Test script manually:**
+
    ```bash
    # On phone
    cd ~/mm-termux-node
@@ -173,6 +204,7 @@ This will sync the latest files to your phone.
    ```
 
 3. **Check logs:**
+
    ```bash
    # On phone
    tail -n 100 ~/mm-termux-node/logs/scraper.log
@@ -181,18 +213,21 @@ This will sync the latest files to your phone.
 ### Cron Not Running
 
 1. **Verify cron service is running:**
+
    ```bash
    # On phone
    sv status crond
    ```
 
 2. **Restart cron service:**
+
    ```bash
    # On phone
    sv restart crond
    ```
 
 3. **Check crontab:**
+
    ```bash
    # On phone
    crontab -l
@@ -200,7 +235,7 @@ This will sync the latest files to your phone.
 
 ## File Structure on Phone
 
-```
+```text
 ~/mm-termux-node/
 ├── scripts/
 │   └── fetch_trendforce.py

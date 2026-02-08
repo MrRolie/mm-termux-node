@@ -3,10 +3,18 @@
 
 set -e
 
-# Configuration
-PHONE_USER="${PHONE_USER:-u0_a259}"  # Default Termux user
-PHONE_IP="${PHONE_IP:-192.168.1.100}"  # Change to your phone's IP
-PHONE_PORT="${PHONE_PORT:-8022}"  # Default Termux SSH port
+# Load configuration from .env file
+if [ -f "$(dirname "$0")/../.env" ]; then
+    source "$(dirname "$0")/../.env"
+else
+    echo "Error: .env file not found in project root"
+    exit 1
+fi
+
+# Use environment variables with fallbacks
+PHONE_USER="${PHONE_USER:-u0_a259}"
+PHONE_IP="${PHONE_IP:-192.168.1.100}"
+PHONE_PORT="${PHONE_PORT:-8022}"
 REMOTE_DIR="${REMOTE_DIR:-/data/data/com.termux/files/home/mm-termux-node}"
 
 # Colors for output
@@ -50,6 +58,9 @@ scp -P ${PHONE_PORT} scripts/fetch_trendforce.py ${PHONE_USER}@${PHONE_IP}:${REM
 echo -e "${YELLOW}Transferring config...${NC}"
 scp -P ${PHONE_PORT} config/industry_ids.yaml ${PHONE_USER}@${PHONE_IP}:${REMOTE_DIR}/config/
 
+echo -e "${YELLOW}Transferring deploy scripts...${NC}"
+scp -P ${PHONE_PORT} deploy/setup_cron.sh deploy/view_logs.sh deploy/test_pushover.sh ${PHONE_USER}@${PHONE_IP}:${REMOTE_DIR}/deploy/
+
 echo -e "${YELLOW}Transferring .env (if exists)...${NC}"
 if [ -f ".env" ]; then
     scp -P ${PHONE_PORT} .env ${PHONE_USER}@${PHONE_IP}:${REMOTE_DIR}/
@@ -58,7 +69,7 @@ else
 fi
 
 echo -e "${YELLOW}Setting permissions...${NC}"
-ssh -p ${PHONE_PORT} ${PHONE_USER}@${PHONE_IP} "chmod +x ${REMOTE_DIR}/scripts/fetch_trendforce.py"
+ssh -p ${PHONE_PORT} ${PHONE_USER}@${PHONE_IP} "chmod +x ${REMOTE_DIR}/scripts/fetch_trendforce.py ${REMOTE_DIR}/deploy/*.sh"
 
 echo ""
 echo -e "${GREEN}Deployment completed successfully!${NC}"
@@ -68,5 +79,7 @@ echo "  1. ssh -p ${PHONE_PORT} ${PHONE_USER}@${PHONE_IP}"
 echo "  2. cd ${REMOTE_DIR}"
 echo "  3. Edit .env with your Pushover credentials (if not already done)"
 echo "  4. Test: python scripts/fetch_trendforce.py --config config/industry_ids.yaml --dry-run --insecure"
-echo "  5. Setup cron: ./deploy/setup_cron.sh"
+echo "  5. Test Pushover: ./deploy/test_pushover.sh"
+echo "  6. Setup cron: ./deploy/setup_cron.sh"
+echo "  7. View logs: ./deploy/view_logs.sh"
 echo ""
