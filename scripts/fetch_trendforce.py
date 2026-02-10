@@ -323,10 +323,13 @@ def get_new_datapoints(rows: list[dict], indicator_state: dict | None) -> list[d
 
 
 def calculate_growth(new_value: float, history: list[dict], n_periods: int) -> float | None:
-    """Calculate relative growth rate difference: (r_t - r̄_n) / r̄_n × 100.
+    """Calculate absolute growth rate difference: (r_t - r̄_n) × 100.
 
-    This normalizes the difference by the historical average growth rate,
-    making thresholds comparable across indicators with different volatility.
+    Returns the difference between current period's log-return and historical
+    average log-return, expressed as percentage points (NOT a relative ratio).
+    
+    This prevents explosive values when historical trend is flat, making the
+    metric stable and interpretable across all market regimes.
 
     Where:
     - r_t = log(P_t) - log(P_{t-1}) (current period's growth rate)
@@ -335,7 +338,9 @@ def calculate_growth(new_value: float, history: list[dict], n_periods: int) -> f
     - P_{t-1} = history[-1] (most recent historical price)
     - P_{t-n} = history[-n] (price from n periods ago)
 
-    Returns None if insufficient history (need at least n values) or if r̄_n ≈ 0.
+    Example: If r_t = -20% and r̄_n = +1%, returns -21 (percentage points).
+    
+    Returns None if insufficient history (need at least n values) or invalid values.
     """
     if len(history) < n_periods:
         return None
@@ -349,22 +354,16 @@ def calculate_growth(new_value: float, history: list[dict], n_periods: int) -> f
     if P_t <= 0 or P_t_minus_1 <= 0 or P_t_minus_n <= 0:
         return None
 
-    # Calculate current period's growth rate
+    # Calculate current period's growth rate (log-return)
     r_t = math.log(P_t) - math.log(P_t_minus_1)
 
-    # Calculate average historical growth rate
+    # Calculate average historical growth rate (log-return)
     r_bar_n = (1 / n_periods) * (math.log(P_t_minus_1) - math.log(P_t_minus_n))
 
-    # Avoid division by zero or very small values
-    if abs(r_bar_n) < 1e-10:
-        # If historical average growth is essentially zero, return the absolute difference
-        # This handles cases where prices have been stable
-        return (r_t - r_bar_n) * 100
-
-    # Calculate relative difference: (r_t - r̄_n) / r̄_n × 100
-    relative_diff = ((r_t - r_bar_n) / r_bar_n) * 100
-
-    return relative_diff
+    # Absolute difference (NOT relative ratio) × 100 for percentage points
+    abs_diff = (r_t - r_bar_n) * 100
+    
+    return abs_diff
 
 
 def _get_indicator_growth(indicator_id: int, state: dict, n_periods: int) -> float | None:
@@ -530,9 +529,8 @@ def format_signal_alert_message(
     signal_value: float,
     state: dict,
 ) -> tuple[str, str]:
-    """Format Pushover notification for a custom signal."""
-    title = f"TrendForce Signal: {signal_config.get('description', signal_name)}"
-
+    """Format Pushover notification for a custom signal with semantic clarity."""
+    description = signal_config.get('description', signal_name)
     sig_type = signal_config["type"]
 
     # Build dependency context
@@ -545,17 +543,26 @@ def format_signal_alert_message(
             dep_unit = dep_state.get("unit", "")
             dep_lines.append(f"  {dep_name} ({dep_id}): {dep_val} {dep_unit}")
 
+    # Format based on signal type (semantics)
     if sig_type == SIGNAL_RATIO:
+        # Ratio: value is unitless ratio
+        title = f"TrendForce Signal: {description}"
+        value_display = f"Ratio: {signal_value:.4f}"
         threshold_str = (
             f"bounds: [{signal_config.get('threshold_min', 0):.2f}, "
             f"{signal_config.get('threshold_max', float('inf')):.2f}]"
         )
     else:
+        # Growth-based signals: value is percentage difference
+        # (weighted_avg, composite_avg, growth_diff)
+        direction = "+" if signal_value >= 0 else ""
+        title = f"TrendForce Signal: {description}: {direction}{signal_value:.1f}%"
+        value_display = f"Diff: {direction}{signal_value:.2f}%"
         threshold_str = f"threshold: {signal_config['threshold']:.1f}%"
 
     message = (
         f"Signal: {signal_name} ({sig_type})\n"
-        f"Value: {signal_value:.2f}\n"
+        f"{value_display}\n"
         f"Config: {threshold_str}\n"
     )
 

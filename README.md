@@ -46,7 +46,7 @@ indicator_ids:
   # - 1234  # Add more as needed
 
 # Default alert parameters
-default_threshold: 50.0     # Alert when change exceeds 50% (relative to historical avg)
+default_threshold: 10.0     # Alert when growth differs by >10 percentage points from average
 default_n_periods: 3        # Compare against 3-period average
 
 # Per-indicator overrides (optional)
@@ -74,16 +74,16 @@ This creates `data/state.json` with historical data. No alerts are sent on first
 
 ## How It Works
 
-### Relative Growth Rate Difference Calculation
+### Absolute Growth Rate Difference Calculation
 
-The script calculates the **relative growth rate difference** `(r_t - r̄_n) / r̄_n × 100`, which measures how much the current growth rate differs from the historical average as a percentage.
+The script calculates the **absolute growth rate difference** `(r_t - r̄_n) × 100`, which measures how many percentage points the current growth rate differs from the historical average.
 
-**Why relative?** This normalizes the difference by the historical average, making thresholds comparable across indicators with different volatility levels. A threshold of 50% means "alert when current growth is 50% different from normal," regardless of the indicator.
+**Why absolute?** This prevents explosive values when the historical trend is flat or near-zero, ensuring stable and interpretable signals across all market regimes. Unlike relative ratios, absolute differences maintain consistent scale regardless of historical volatility.
 
 **Formula:**
 
 ```
-relative_diff = (r_t - r̄_n) / r̄_n × 100
+abs_diff = (r_t - r̄_n) × 100
 ```
 
 Where:
@@ -95,16 +95,69 @@ Where:
 - `P_{t-n}` = price from n periods ago
 - `log` = natural logarithm
 
-**Example** (indicator 6106 with `n_periods=3`, `threshold=50%`):
+**Example** (indicator 6106 with `n_periods=3`, `threshold=10%`):
 
 - P_t = $15.13 (Dec 2025, new value)
 - P_{t-1} = $10.69 (Nov 2025)
 - P_{t-3} = $4.11 (Sep 2025)
 - Current growth: r_t = log(15.13) - log(10.69) = 0.348 (34.8%)
 - Average past growth: r̄_3 = (1/3) × [log(10.69) - log(4.11)] = 0.293 (29.3%)
-- **Relative difference: (0.348 - 0.293) / 0.293 × 100 = 18.8%**
-- No alert sent (18.8% < 50% threshold)
-- Interpretation: "Current growth is 18.8% higher than the historical average"
+- **Absolute difference: (0.348 - 0.293) × 100 = 5.5 percentage points**
+- No alert sent (5.5 < 10% threshold)
+- Interpretation: "Current growth is 5.5 percentage points above the 3-period average"
+
+### Custom Composite Signals
+
+In addition to individual indicators, the system supports **custom composite signals** that combine multiple indicators to detect structural market imbalances. Four signal types are available:
+
+#### 1. Growth Diff (`growth_diff`)
+Calculates the difference between two indicators' growth rates. Use to detect divergences (e.g., spot price accelerating while capex decelerates).
+
+```yaml
+signal_dram_golden_cross_type: growth_diff
+signal_dram_golden_cross_indicator_a: 6105  # DRAM Spot Price
+signal_dram_golden_cross_indicator_b: 205   # DRAM Capex
+signal_dram_golden_cross_threshold: 15.0    # Alert if diff > 15 percentage points
+```
+
+#### 2. Ratio (`ratio`)
+Calculates the ratio of two indicators' current values. Use for direct comparisons (e.g., price-to-capex ratio).
+
+```yaml
+signal_example_ratio_type: ratio
+signal_example_ratio_numerator: 6105
+signal_example_ratio_denominator: 205
+signal_example_ratio_threshold_min: 0.5
+signal_example_ratio_threshold_max: 2.0
+```
+
+#### 3. Composite Average (`composite_avg`)
+Calculates the simple average of multiple indicators' growth rates. Use for equal-weighted sector indices.
+
+```yaml
+signal_example_avg_type: composite_avg
+signal_example_avg_indicators:
+  - 199  # DRAM Revenue
+  - 273  # NAND Revenue
+signal_example_avg_threshold: 20.0
+```
+
+#### 4. Weighted Average (`weighted_avg`)
+Calculates the weighted average of multiple indicators' growth rates. Use for custom-weighted sector indices.
+
+```yaml
+signal_memory_market_composite_type: weighted_avg
+signal_memory_market_composite_indicators:
+  - 199  # Global DRAM Revenue
+  - 273  # Global NAND Revenue
+signal_memory_market_composite_weights:
+  - 0.6  # 60% DRAM
+  - 0.4  # 40% NAND
+signal_memory_market_composite_threshold: 20.0
+signal_memory_market_composite_n_periods: 3
+```
+
+**All growth-based signals** (growth_diff, composite_avg, weighted_avg) use the same absolute difference calculation as individual indicators, ensuring consistent interpretation across the entire system.
 
 ### State Management
 
@@ -233,10 +286,25 @@ Example notification when threshold exceeded:
 Title: TrendForce Alert: Mainstream NAND Flash Wafer Spot Price
 
 Body:
-Mainstream NAND Flash Wafer Spot Price increased by 107.2% (threshold: 10.0%)
+Mainstream NAND Flash Wafer Spot Price increased by 35.2% (threshold: 10.0%)
 
 New value: 15.134 USD
 Date: 2025-12-31
+```
+
+Example custom signal alert:
+
+```
+Title: TrendForce Signal: Memory Market Composite: -16.7%
+
+Body:
+Signal: memory_market_composite (weighted_avg)
+Diff: -16.74%
+Config: threshold: 20.0%
+
+Dependencies:
+  Global Branded DRAM Manufacturers' Revenue: Total (199): 27012.5941 Millions of USD
+  Global Branded NAND Flash Manufacturers' Revenue: Total (273): 13162.8201 Millions of USD
 ```
 
 ## Troubleshooting
