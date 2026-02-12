@@ -11,6 +11,7 @@ import os
 import sys
 import time
 import ssl
+import google.generativeai as genai
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from urllib.error import HTTPError, URLError
@@ -677,6 +678,48 @@ def check_signal_threshold(signal_value: float, signal_config: dict) -> bool:
     return abs(signal_value) > signal_config["threshold"]
 
 
+def should_send_signal_alert(
+    signal_value: float,
+    signal_config: dict,
+    previous_signal_state: dict | None,
+) -> bool:
+    """Determine if signal alert should be sent to avoid duplicates.
+    
+    Returns True if:
+    - First time seeing this signal AND value exceeds threshold, OR
+    - Previous value did NOT exceed threshold, but new value does (crossing), OR
+    - Value changed AND is now above threshold
+    
+    This prevents repeated alerts for the same signal value across runs.
+    """
+    # If no previous state, only alert if threshold is exceeded
+    if previous_signal_state is None:
+        return check_signal_threshold(signal_value, signal_config)
+    
+    previous_value = previous_signal_state.get("last_check_value")
+    
+    # If we don't have a previous value to compare, check threshold
+    if previous_value is None:
+        return check_signal_threshold(signal_value, signal_config)
+    
+    previous_value = float(previous_value)
+    
+    # Check if previous value exceeded threshold
+    prev_exceeded = check_signal_threshold(previous_value, signal_config)
+    
+    # Check if current value exceeds threshold
+    curr_exceeded = check_signal_threshold(signal_value, signal_config)
+    
+    # Alert if value changed significantly (> 0.01 to avoid floating point noise)
+    # AND current value exceeds threshold
+    value_changed = abs(signal_value - previous_value) > 0.01
+    
+    # Alert if crossing the threshold (prev was OK, now exceeds)
+    crossed_threshold = (not prev_exceeded) and curr_exceeded
+    
+    return (value_changed or crossed_threshold) and curr_exceeded
+
+
 def update_signal_state(
     state: dict,
     signal_name: str,
@@ -714,6 +757,66 @@ def update_signal_state(
     # Trim history
     if len(sig_state["history"]) > max_history:
         sig_state["history"] = sig_state["history"][-max_history:]
+
+
+PROMPT_TEMPLATE = """
+You are the "TrendForce Sentinel," a quantitative trading assistant for a financial engineer. 
+Your goal is to strip away noise and deliver a high-signal, blunt summary of semiconductor and macro market changes.
+
+**Rules:**
+1. **Be Blunt:** No pleasantries. State the data.
+2. **Focus on Change:** Only comment on indicators that have updated or breached a threshold.
+3. **Prioritize Alpha:** DRAM/NAND Spot prices and Custom Signals (Golden Cross/Supply Squeeze) are priority #1.
+4. **Format for Pushover:** Use concise bullet points, emojis for trend direction (📈, 📉, ⚠️), and keep the total length under 150 words.
+
+
+**Input Data:**
+The following indicators have updated since the last run (Daily/Monthly change % included):
+
+{formatted_list_of_updated_indicators} 
+# ^ Python should format this as: "ID 6105 (DRAM Spot): $X.XX (+5.2%)"
+
+**Custom Signal Status:**
+{list_of_triggered_signals}
+# ^ Python should format this as: "⚠️ DRAM Golden Cross: TRIGGERED (Spot +15% > Capex -2%)"
+
+**Task:**
+Draft a Pushover notification summary. 
+- If nothing significant changed, reply only with "📉 No significant alpha signal updates."
+- If there are updates, structure the alert as:
+  **HEADLINE:** (3-4 words summarizing the regime, e.g., "NAND Supply Squeeze Active")
+  **ALPHA:** (Updates on Indicators 6105/6106 or Signal breaches)
+  **FLOW:** (Significant changes in Shipments/Revenue/Capex)
+  **MACRO:** (Only if VIX or Yields moved >5%)
+"""
+
+
+def generate_ai_summary(
+    api_key: str, updated_indicators: list[str], triggered_signals: list[str]
+) -> str | None:
+    """Generate daily summary using Google Gemini API."""
+    if not updated_indicators and not triggered_signals:
+        return None
+
+    # Format lists
+    inds_str = "\n".join(updated_indicators) if updated_indicators else "None"
+    sigs_str = "\n".join(triggered_signals) if triggered_signals else "None"
+
+    prompt = PROMPT_TEMPLATE.format(
+        formatted_list_of_updated_indicators=inds_str,
+        list_of_triggered_signals=sigs_str
+    )
+
+    try:
+        genai.configure(api_key=api_key)
+        # Using the latest efficient flash model
+        model = genai.GenerativeModel("gemini-flash-latest")
+        
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        LOGGER.error("Failed to generate AI summary: %s", e)
+        return None
 
 
 def main() -> int:
@@ -817,6 +920,10 @@ def main() -> int:
 
     # Parallel fetch
     failures: list[str] = []
+    # Lists for AI summary
+    updated_indicators_info: list[str] = []
+    triggered_signals_info: list[str] = []
+    
     new_datapoints_count = 0
     alerts_sent = 0
 
@@ -874,6 +981,21 @@ def main() -> int:
 
             LOGGER.info("Found %d new datapoint(s) for %s", len(new_rows), indicator_id)
             new_datapoints_count += len(new_rows)
+
+            # Capture for AI Summary
+            try:
+                latest_new_val = float(new_rows[-1]["value"])
+                prev_val_str = ind_state.get("last_check_value")
+                if prev_val_str:
+                    prev_val = float(prev_val_str)
+                    change_pct = ((latest_new_val - prev_val) / abs(prev_val)) * 100
+                    info_str = f"ID {indicator_id} ({metadata['indicator_name']}): {latest_new_val} {metadata['unit']} ({change_pct:+.1f}%)"
+                    updated_indicators_info.append(info_str)
+                else:
+                    info_str = f"ID {indicator_id} ({metadata['indicator_name']}): {latest_new_val} {metadata['unit']} (New)"
+                    updated_indicators_info.append(info_str)
+            except Exception:
+                pass
 
             # Process each new datapoint
             # Build temporary history for calculating growth across multiple new datapoints
@@ -971,7 +1093,24 @@ def main() -> int:
 
             LOGGER.info("Signal '%s': value = %.2f", sig_name, signal_value)
 
-            if check_signal_threshold(signal_value, sig_config):
+            # Get previous signal state to avoid duplicate alerts
+            previous_signal_state = state.get("signals", {}).get(sig_name)
+            
+            if should_send_signal_alert(signal_value, sig_config, previous_signal_state):
+                # Capture for AI Summary
+                sig_detail = ""
+                if sig_config["type"] == SIGNAL_GROWTH_DIFF:
+                    try:
+                        growth_a = _get_indicator_growth(sig_config["indicator_a"], state, sig_config["n_periods"])
+                        growth_b = _get_indicator_growth(sig_config["indicator_b"], state, sig_config["n_periods"])
+                        if growth_a is not None and growth_b is not None:
+                            sig_detail = f"(Ind A growth {growth_a:+.1f}% vs Ind B growth {growth_b:+.1f}%)"
+                    except Exception:
+                        pass
+                
+                sig_info = f"⚠️ {sig_name}: TRIGGERED Value: {signal_value:.2f} {sig_detail}"
+                triggered_signals_info.append(sig_info)
+
                 title, message = format_signal_alert_message(
                     sig_name, sig_config, signal_value, state,
                 )
@@ -987,6 +1126,12 @@ def main() -> int:
                         alerts_sent += 1
                     else:
                         LOGGER.error("Failed to send signal alert: %s", sig_name)
+            elif check_signal_threshold(signal_value, sig_config):
+                # Signal still exceeds threshold but no alert sent (no change)
+                LOGGER.debug(
+                    "Signal '%s': still exceeds threshold (%.2f) but no change detected",
+                    sig_name, signal_value
+                )
 
             # Determine date from latest dependency update
             dep_dates = [
@@ -1013,6 +1158,19 @@ def main() -> int:
         alerts_sent,
         len(failures)
     )
+
+    # Generate AI daily summary
+    google_key = os.environ.get("GOOGLE_API_KEY")
+    if google_key and (updated_indicators_info or triggered_signals_info) and not args.dry_run:
+        LOGGER.info("Generating AI daily summary from Google Gemini...")
+        summary = generate_ai_summary(google_key, updated_indicators_info, triggered_signals_info)
+        if summary:
+            title = "TrendForce Sentinel Daily"
+            LOGGER.info("Sending AI summary to Pushover...")
+            if send_pushover_notification(pushover_user, pushover_token, summary, title, timeout):
+                LOGGER.info("AI summary sent successfully")
+            else:
+                LOGGER.error("Failed to send AI summary")
 
     if failures:
         LOGGER.error("Failed indicators: %s", ", ".join(failures))
