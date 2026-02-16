@@ -11,7 +11,7 @@ import os
 import sys
 import time
 import ssl
-import google.generativeai as genai
+from google import genai
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from urllib.error import HTTPError, URLError
@@ -808,11 +808,11 @@ def generate_ai_summary(
     )
 
     try:
-        genai.configure(api_key=api_key)
-        # Using the latest efficient flash model
-        model = genai.GenerativeModel("gemini-flash-latest")
-        
-        response = model.generate_content(prompt)
+        client = genai.Client(api_key=api_key)
+        response = client.models.generate_content(
+            model="gemini-flash-latest",
+            contents=prompt,
+        )
         return response.text
     except Exception as e:
         LOGGER.error("Failed to generate AI summary: %s", e)
