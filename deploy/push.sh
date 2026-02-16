@@ -50,10 +50,13 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 fi
 
 echo -e "${YELLOW}Creating remote directories...${NC}"
-ssh -p ${PHONE_PORT} ${PHONE_USER}@${PHONE_IP} "mkdir -p ${REMOTE_DIR}/{scripts,config,data,logs}"
+ssh -p ${PHONE_PORT} ${PHONE_USER}@${PHONE_IP} "mkdir -p ${REMOTE_DIR}/{scripts,config,data,logs,mm_termux_node}"
 
 echo -e "${YELLOW}Transferring scripts...${NC}"
 scp -P ${PHONE_PORT} scripts/fetch_trendforce.py ${PHONE_USER}@${PHONE_IP}:${REMOTE_DIR}/scripts/
+
+echo -e "${YELLOW}Transferring modules...${NC}"
+scp -P ${PHONE_PORT} -r mm_termux_node ${PHONE_USER}@${PHONE_IP}:${REMOTE_DIR}/
 
 echo -e "${YELLOW}Transferring config...${NC}"
 scp -P ${PHONE_PORT} config/industry_ids.yaml ${PHONE_USER}@${PHONE_IP}:${REMOTE_DIR}/config/
