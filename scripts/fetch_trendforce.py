@@ -11,6 +11,10 @@ import os
 import sys
 import time
 import ssl
+from pathlib import Path
+
+# Add the project root to sys.path so we can import mm_termux_node
+sys.path.insert(0, str(Path(__file__).parent.parent))
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from urllib.error import HTTPError, URLError
