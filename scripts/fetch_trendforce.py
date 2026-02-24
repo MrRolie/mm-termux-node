@@ -297,6 +297,25 @@ def load_env_file(path: str) -> dict:
     return env_vars
 
 
+def resolve_google_api_key(env_vars: dict) -> str | None:
+    """Resolve Google/Gemini API key from loaded env vars and process env.
+
+    Preference order is the loaded env file first, then process environment.
+    Supports common key aliases for compatibility.
+    """
+    key_names = ("GOOGLE_API_KEY", "GEMINI_API_KEY", "GOOGLE_GENAI_API_KEY")
+
+    for key_name in key_names:
+        raw_value = env_vars.get(key_name) or os.environ.get(key_name)
+        if raw_value is None:
+            continue
+        value = str(raw_value).strip().strip('"').strip("'")
+        if value:
+            return value
+
+    return None
+
+
 def load_state(path: str) -> dict:
     """Load state from JSON file, or return empty state if not exists."""
     if not os.path.exists(path):
@@ -1107,17 +1126,24 @@ def main() -> int:
     )
 
     # Generate AI daily summary
-    google_key = os.environ.get("GOOGLE_API_KEY")
-    if google_key and (updated_indicators_info or triggered_signals_info) and not args.dry_run:
-        LOGGER.info("Generating AI daily summary from Google Gemini...")
-        summary = generate_ai_summary(google_key, updated_indicators_info, triggered_signals_info)
-        if summary:
-            title = "TrendForce Sentinel Daily"
-            LOGGER.info("Sending AI summary to Pushover...")
-            if send_pushover_notification(pushover_user, pushover_token, summary, title, timeout):
-                LOGGER.info("AI summary sent successfully")
-            else:
-                LOGGER.error("Failed to send AI summary")
+    has_summary_inputs = bool(updated_indicators_info or triggered_signals_info)
+    if has_summary_inputs and not args.dry_run:
+        google_key = resolve_google_api_key(env_vars)
+        if not google_key:
+            LOGGER.warning(
+                "AI summary skipped: missing Google API key. Set one of %s in env file or process environment.",
+                ", ".join(["GOOGLE_API_KEY", "GEMINI_API_KEY", "GOOGLE_GENAI_API_KEY"]),
+            )
+        else:
+            LOGGER.info("Generating AI daily summary from Google Gemini...")
+            summary = generate_ai_summary(google_key, updated_indicators_info, triggered_signals_info)
+            if summary:
+                title = "TrendForce Sentinel Daily"
+                LOGGER.info("Sending AI summary to Pushover...")
+                if send_pushover_notification(pushover_user, pushover_token, summary, title, timeout):
+                    LOGGER.info("AI summary sent successfully")
+                else:
+                    LOGGER.error("Failed to send AI summary")
 
     if failures:
         LOGGER.error("Failed indicators: %s", ", ".join(failures))
