@@ -10,6 +10,7 @@ import math
 import os
 import sys
 import time
+import http.client
 import ssl
 from pathlib import Path
 
@@ -220,11 +221,11 @@ def _fetch_indicator(
                 time.sleep(delay)
                 continue
             raise
-        except URLError as exc:
+        except (URLError, http.client.IncompleteRead, TimeoutError) as exc:
             last_error = exc
             if attempt < retries:
                 delay = backoff_base * (2 ** attempt)
-                LOGGER.warning("Network error for %s (sleep %.1fs)", indicator_id, delay)
+                LOGGER.warning("Network error for %s (%s) (sleep %.1fs)", indicator_id, type(exc).__name__, delay)
                 time.sleep(delay)
                 continue
             raise
@@ -807,6 +808,11 @@ def main() -> int:
         action="store_true",
         help="Skip sending notifications (for testing)",
     )
+    parser.add_argument(
+        "--test-ai-summary",
+        action="store_true",
+        help="Send a synthetic AI summary to Pushover to verify the pipeline, then exit",
+    )
 
     args = parser.parse_args()
 
@@ -862,6 +868,49 @@ def main() -> int:
     if not pushover_user or not pushover_token:
         LOGGER.error("PUSHOVER_USER_KEY and PUSHOVER_API_TOKEN required in %s", env_file)
         return 1
+
+    # ------------------------------------------------------------------ #
+    # --test-ai-summary: fire a real Gemini → Pushover round-trip and exit
+    # ------------------------------------------------------------------ #
+    if args.test_ai_summary:
+        google_key = resolve_google_api_key(env_vars)
+        if not google_key:
+            LOGGER.error(
+                "--test-ai-summary: missing Google API key. Set one of %s in env file.",
+                ", ".join(["GOOGLE_API_KEY", "GEMINI_API_KEY", "GOOGLE_GENAI_API_KEY"]),
+            )
+            return 1
+
+        synthetic_indicators = [
+            "ID 6105 (Mainstream DRAM Spot Price): 34.34 USD (+2.3%)",
+            "ID 3313 (US Treasury Yield - 3-Month): 3.69 % (+0.0%)",
+            "ID 1897 (COMEX: Precious Metal Futures - Copper): 6.06 USD/lb (+0.6%)",
+        ]
+        synthetic_signals = [
+            "⚠️ datacenter_infra_gap: TRIGGERED Value: -52.20 (Ind A growth -1.2% vs Ind B growth +51.0%)",
+        ]
+
+        LOGGER.info("[TEST] Calling Gemini for AI summary...")
+        summary = generate_ai_summary(google_key, synthetic_indicators, synthetic_signals)
+        if not summary:
+            LOGGER.error("[TEST] generate_ai_summary returned None - check API key and SDK")
+            return 1
+
+        LOGGER.info("[TEST] Gemini response:\n%s", summary)
+        LOGGER.info("[TEST] Sending to Pushover...")
+        success = send_pushover_notification(
+            pushover_user,
+            pushover_token,
+            summary,
+            "[TEST] TrendForce Sentinel Daily",
+            timeout,
+        )
+        if success:
+            LOGGER.info("[TEST] Pushover delivery confirmed")
+            return 0
+        else:
+            LOGGER.error("[TEST] Pushover delivery FAILED")
+            return 1
 
     # Load state file
     state_file = config.get("state_file", "data/state.json")

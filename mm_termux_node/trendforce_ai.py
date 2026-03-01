@@ -4,10 +4,22 @@ from __future__ import annotations
 
 import logging
 
+# Try new google-genai SDK first, fall back to legacy google-generativeai
+_GENAI_SDK: str | None = None
+genai = None
+
 try:
-    from google import genai
+    from google import genai  # type: ignore[assignment]
+    _GENAI_SDK = "new"
 except Exception:  # noqa: BLE001
-    genai = None
+    pass
+
+if genai is None:
+    try:
+        import google.generativeai as genai  # type: ignore[assignment,no-redef]
+        _GENAI_SDK = "legacy"
+    except Exception:  # noqa: BLE001
+        pass
 
 LOGGER = logging.getLogger("trendforce_ai")
 
@@ -43,14 +55,29 @@ Draft a Pushover notification summary.
 """
 
 
+# Ordered preference: try each model until one succeeds (handles quota limits per model)
+_NEW_SDK_MODELS = [
+    "gemini-2.0-flash",       # Primary: fast, low cost
+    "gemini-2.0-flash-lite",  # Fallback: lighter quota
+    "gemini-2.5-flash",       # Higher-tier fallback
+    "gemini-flash-lite-latest",  # Alias fallback
+]
+_LEGACY_SDK_MODELS = ["gemini-1.5-flash", "gemini-1.0-pro"]
+
+
 def generate_ai_summary(
     api_key: str, updated_indicators: list[str], triggered_signals: list[str]
 ) -> str | None:
-    """Generate daily summary using Google Gemini API."""
+    """Generate daily summary using Google Gemini API.
+
+    Supports both the new ``google-genai`` SDK (_GENAI_SDK == "new") and the
+    legacy ``google-generativeai`` SDK (_GENAI_SDK == "legacy").
+    Automatically falls back through model list on 429/quota errors.
+    """
     if not updated_indicators and not triggered_signals:
         return None
 
-    if genai is None:
+    if genai is None or _GENAI_SDK is None:
         LOGGER.error("google.genai not available; skipping AI summary")
         return None
 
@@ -63,13 +90,40 @@ def generate_ai_summary(
         list_of_triggered_signals=sigs_str,
     )
 
-    try:
-        client = genai.Client(api_key=api_key)
-        response = client.models.generate_content(
-            model="gemini-flash-latest",
-            contents=prompt,
-        )
-        return response.text
-    except Exception as exc:  # noqa: BLE001
-        LOGGER.error("Failed to generate AI summary: %s", exc)
+    if _GENAI_SDK == "new":
+        client = genai.Client(api_key=api_key)  # type: ignore[attr-defined]
+        for model_name in _NEW_SDK_MODELS:
+            try:
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                )
+                LOGGER.info("AI summary generated using model: %s", model_name)
+                return response.text
+            except Exception as exc:  # noqa: BLE001
+                exc_str = str(exc)
+                if "429" in exc_str or "RESOURCE_EXHAUSTED" in exc_str or "quota" in exc_str.lower():
+                    LOGGER.warning("Model %s quota exceeded, trying next model...", model_name)
+                    continue
+                LOGGER.error("Failed to generate AI summary with %s: %s", model_name, exc)
+                return None
+        LOGGER.error("All models exhausted due to quota limits")
+        return None
+    else:
+        # Legacy google-generativeai SDK
+        genai.configure(api_key=api_key)  # type: ignore[attr-defined]
+        for model_name in _LEGACY_SDK_MODELS:
+            try:
+                model = genai.GenerativeModel(model_name)  # type: ignore[attr-defined]
+                response = model.generate_content(prompt)
+                LOGGER.info("AI summary generated using model: %s", model_name)
+                return response.text
+            except Exception as exc:  # noqa: BLE001
+                exc_str = str(exc)
+                if "429" in exc_str or "RESOURCE_EXHAUSTED" in exc_str or "quota" in exc_str.lower():
+                    LOGGER.warning("Model %s quota exceeded, trying next model...", model_name)
+                    continue
+                LOGGER.error("Failed to generate AI summary with %s: %s", model_name, exc)
+                return None
+        LOGGER.error("All models exhausted due to quota limits")
         return None
