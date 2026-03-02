@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 
 # Try new google-genai SDK first, fall back to legacy google-generativeai
 _GENAI_SDK: str | None = None
@@ -27,31 +28,37 @@ PROMPT_TEMPLATE = """
 You are the "TrendForce Sentinel," a quantitative trading assistant for a financial engineer. 
 Your goal is to strip away noise and deliver a high-signal, blunt summary of semiconductor and macro market changes.
 
-**Rules:**
-1. **Be Blunt:** No pleasantries. State the data.
-2. **Focus on Change:** Only comment on indicators that have updated or breached a threshold.
-3. **Prioritize Alpha:** DRAM/NAND Spot prices and Custom Signals (Golden Cross/Supply Squeeze) are priority #1.
-4. **Format for Pushover:** Use concise bullet points, emojis for trend direction (📈, 📉, ⚠️), and keep the total length under 150 words.
+Rules:
+1. Be blunt: no pleasantries, only data-backed conclusions.
+2. Focus on change: only mention indicators that updated or breached a threshold.
+3. Prioritize alpha: DRAM/NAND spot prices and custom signals (Golden Cross/Supply Squeeze) are priority #1.
+4. Output format: plain text only (no markdown, no bold, no headings with **). Emojis are allowed (📈, 📉, ⚠️).
+5. Keep length under 150 words.
+6. Use numbers as evidence: every directional call must cite the key value/change (%, spread, or level).
+7. Translate evidence into intuitive signal language whenever valid:
+     - explicitly label signal as Bullish / Bearish / Neutral
+     - tie it to the relevant industry, market, or sector (e.g., memory, semiconductors, risk assets, rates).
 
 
-**Input Data:**
+Input Data:
 The following indicators have updated since the last run (Daily/Monthly change % included):
 
 {formatted_list_of_updated_indicators} 
 # ^ Python should format this as: "ID 6105 (DRAM Spot): $X.XX (+5.2%)"
 
-**Custom Signal Status:**
+Custom Signal Status:
 {list_of_triggered_signals}
 # ^ Python should format this as: "⚠️ DRAM Golden Cross: TRIGGERED (Spot +15% > Capex -2%)"
 
-**Task:**
+Task:
 Draft a Pushover notification summary. 
 - If nothing significant changed, reply only with "📉 No significant alpha signal updates."
-- If there are updates, structure the alert as:
-  **HEADLINE:** (3-4 words summarizing the regime, e.g., "NAND Supply Squeeze Active")
-  **ALPHA:** (Updates on Indicators 6105/6106 or Signal breaches)
-  **FLOW:** (Significant changes in Shipments/Revenue/Capex)
-  **MACRO:** (Only if VIX or Yields moved >5%)
+- If there are updates, use this plaintext layout exactly:
+    HEADLINE: 3-4 words summarizing the regime
+    ALPHA: key updates on indicators 6105/6106 or signal breaches with numbers
+    FLOW: significant changes in shipments/revenue/capex with numbers
+    MACRO: only if VIX or yields moved >5%, with numbers
+    SIGNAL: one-line interpretation such as "📈 Bullish for [industry/market/sector]" or "📉 Bearish for [industry/market/sector]", justified by the strongest numeric evidence above. Use Neutral if evidence is mixed.
 """
 
 
@@ -63,6 +70,25 @@ _NEW_SDK_MODELS = [
     "gemini-flash-lite-latest",  # Alias fallback
 ]
 _LEGACY_SDK_MODELS = ["gemini-1.5-flash", "gemini-1.0-pro"]
+
+
+def _to_plaintext_summary(text: str | None) -> str | None:
+    """Strip common markdown artifacts while keeping emojis and readable text."""
+    if text is None:
+        return None
+
+    cleaned = text.replace("\r\n", "\n")
+    cleaned = cleaned.replace("**", "")
+    cleaned = cleaned.replace("__", "")
+    cleaned = cleaned.replace("`", "")
+    cleaned = re.sub(r"^#{1,6}\s*", "", cleaned, flags=re.MULTILINE)
+    cleaned = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r"\1", cleaned)
+    cleaned = re.sub(r"^\s*[-*]\s+", "", cleaned, flags=re.MULTILINE)
+    cleaned = re.sub(r"^\s*\d+\.\s+", "", cleaned, flags=re.MULTILINE)
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+
+    cleaned = cleaned.strip()
+    return cleaned or None
 
 
 def generate_ai_summary(
@@ -99,7 +125,7 @@ def generate_ai_summary(
                     contents=prompt,
                 )
                 LOGGER.info("AI summary generated using model: %s", model_name)
-                return response.text
+                return _to_plaintext_summary(response.text)
             except Exception as exc:  # noqa: BLE001
                 exc_str = str(exc)
                 if "429" in exc_str or "RESOURCE_EXHAUSTED" in exc_str or "quota" in exc_str.lower():
@@ -117,7 +143,7 @@ def generate_ai_summary(
                 model = genai.GenerativeModel(model_name)  # type: ignore[attr-defined]
                 response = model.generate_content(prompt)
                 LOGGER.info("AI summary generated using model: %s", model_name)
-                return response.text
+                return _to_plaintext_summary(response.text)
             except Exception as exc:  # noqa: BLE001
                 exc_str = str(exc)
                 if "429" in exc_str or "RESOURCE_EXHAUSTED" in exc_str or "quota" in exc_str.lower():
