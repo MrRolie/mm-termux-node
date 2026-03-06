@@ -1,87 +1,45 @@
 {
   "version": 1,
   "indicators": {
-    "6105": {
-      "indicator_id": 6105,
-      "indicator_name": "Mainstream DRAM Spot Price",
-      "unit": "USD",
-      "freq": "M",
-      "last_check_date": "2026-01-31T16:00:00.000Z",
-      "last_check_value": "38.253",
+    "135": {
+      "indicator_id": 135,
+      "indicator_name": "China Server Domestic Shipment: Total",
+      "unit": "K pcs",
+      "freq": "Q",
+      "last_check_date": "2024-12-31T16:00:00.000Z",
+      "last_check_value": "785.3",
       "history": [
         {
-          "date": "2025-05-31T16:00:00.000Z",
-          "value": "5.85"
+          "date": "2022-12-31T16:00:00.000Z",
+          "value": "737.9"
         },
         {
-          "date": "2025-06-30T16:00:00.000Z",
-          "value": "6.107"
+          "date": "2023-03-31T16:00:00.000Z",
+          "value": "829.75"
         },
         {
-          "date": "2025-07-31T16:00:00.000Z",
-          "value": "6.12"
+          "date": "2023-06-30T16:00:00.000Z",
+          "value": "893"
         },
         {
-          "date": "2025-08-31T16:00:00.000Z",
-          "value": "6.569"
+          "date": "2023-09-30T16:00:00.000Z",
+          "value": "817"
         },
         {
-          "date": "2025-09-30T16:00:00.000Z",
-          "value": "10.664"
+          "date": "2023-12-31T16:00:00.000Z",
+          "value": "720.65"
         },
         {
-          "date": "2025-10-31T16:00:00.000Z",
-          "value": "23.216"
+          "date": "2024-03-31T16:00:00.000Z",
+          "value": "806"
         },
         {
-          "date": "2025-11-30T16:00:00.000Z",
-          "value": "26.951"
+          "date": "2024-06-30T16:00:00.000Z",
+          "value": "870.5"
         },
         {
-          "date": "2025-12-31T16:00:00.000Z",
-          "value": "34.336"
-        }
-      ]
-    },
-    "6106": {
-      "indicator_id": 6106,
-      "indicator_name": "Mainstream NAND Flash Wafer Spot Price",
-      "unit": "USD",
-      "freq": "M",
-      "last_check_date": "2026-01-31T16:00:00.000Z",
-      "last_check_value": "17.724",
-      "history": [
-        {
-          "date": "2025-05-31T16:00:00.000Z",
-          "value": "2.695"
-        },
-        {
-          "date": "2025-06-30T16:00:00.000Z",
-          "value": "2.692"
-        },
-        {
-          "date": "2025-07-31T16:00:00.000Z",
-          "value": "2.796"
-        },
-        {
-          "date": "2025-08-31T16:00:00.000Z",
-          "value": "2.915"
-        },
-        {
-          "date": "2025-09-30T16:00:00.000Z",
-          "value": "4.109"
-        },
-        {
-          "date": "2025-10-31T16:00:00.000Z",
-          "value": "7.116"
-        },
-        {
-          "date": "2025-11-30T16:00:00.000Z",
-          "value": "10.686"
-        },
-        {
-          "date": "2025-12-31T16:00:00.000Z",
-          "value": "15.134"
+          "date": "2024-09-30T16:00:00.000Z",
+          "value": "858.2"
         }
       ]
     },
@@ -127,129 +85,87 @@
         }
       ]
     },
-    "135": {
-      "indicator_id": 135,
-      "indicator_name": "China Server Domestic Shipment: Total",
-      "unit": "K pcs",
-      "freq": "Q",
-      "last_check_date": "2024-12-31T16:00:00.000Z",
-      "last_check_value": "785.3",
+    "6106": {
+      "indicator_id": 6106,
+      "indicator_name": "Mainstream NAND Flash Wafer Spot Price",
+      "unit": "USD",
+      "freq": "M",
+      "last_check_date": "2026-01-31T16:00:00.000Z",
+      "last_check_value": "17.724",
       "history": [
         {
-          "date": "2022-12-31T16:00:00.000Z",
-          "value": "737.9"
+          "date": "2025-05-31T16:00:00.000Z",
+          "value": "2.695"
         },
         {
-          "date": "2023-03-31T16:00:00.000Z",
-          "value": "829.75"
+          "date": "2025-06-30T16:00:00.000Z",
+          "value": "2.692"
         },
         {
-          "date": "2023-06-30T16:00:00.000Z",
-          "value": "893"
+          "date": "2025-07-31T16:00:00.000Z",
+          "value": "2.796"
         },
         {
-          "date": "2023-09-30T16:00:00.000Z",
-          "value": "817"
+          "date": "2025-08-31T16:00:00.000Z",
+          "value": "2.915"
         },
         {
-          "date": "2023-12-31T16:00:00.000Z",
-          "value": "720.65"
+          "date": "2025-09-30T16:00:00.000Z",
+          "value": "4.109"
         },
         {
-          "date": "2024-03-31T16:00:00.000Z",
-          "value": "806"
+          "date": "2025-10-31T16:00:00.000Z",
+          "value": "7.116"
         },
         {
-          "date": "2024-06-30T16:00:00.000Z",
-          "value": "870.5"
+          "date": "2025-11-30T16:00:00.000Z",
+          "value": "10.686"
         },
         {
-          "date": "2024-09-30T16:00:00.000Z",
-          "value": "858.2"
+          "date": "2025-12-31T16:00:00.000Z",
+          "value": "15.134"
         }
       ]
     },
-    "205": {
-      "indicator_id": 205,
-      "indicator_name": "DRAM Makers' Capex: Total",
-      "unit": "Millions of USD",
-      "freq": "Y",
-      "last_check_date": "2023-12-31T16:00:00.000Z",
-      "last_check_value": "29734.2773",
+    "6105": {
+      "indicator_id": 6105,
+      "indicator_name": "Mainstream DRAM Spot Price",
+      "unit": "USD",
+      "freq": "M",
+      "last_check_date": "2026-01-31T16:00:00.000Z",
+      "last_check_value": "38.253",
       "history": [
         {
-          "date": "2015-12-31T16:00:00.000Z",
-          "value": "12124.0131"
+          "date": "2025-05-31T16:00:00.000Z",
+          "value": "5.85"
         },
         {
-          "date": "2016-12-31T16:00:00.000Z",
-          "value": "14628.0407"
+          "date": "2025-06-30T16:00:00.000Z",
+          "value": "6.107"
         },
         {
-          "date": "2017-12-31T16:00:00.000Z",
-          "value": "19381.7409"
+          "date": "2025-07-31T16:00:00.000Z",
+          "value": "6.12"
         },
         {
-          "date": "2018-12-31T16:00:00.000Z",
-          "value": "19091.2786"
+          "date": "2025-08-31T16:00:00.000Z",
+          "value": "6.569"
         },
         {
-          "date": "2019-12-31T16:00:00.000Z",
-          "value": "18953.8156"
+          "date": "2025-09-30T16:00:00.000Z",
+          "value": "10.664"
         },
         {
-          "date": "2020-12-31T16:00:00.000Z",
-          "value": "28047.8772"
+          "date": "2025-10-31T16:00:00.000Z",
+          "value": "23.216"
         },
         {
-          "date": "2021-12-31T16:00:00.000Z",
-          "value": "30035.931"
+          "date": "2025-11-30T16:00:00.000Z",
+          "value": "26.951"
         },
         {
-          "date": "2022-12-31T16:00:00.000Z",
-          "value": "19976.7532"
-        }
-      ]
-    },
-    "273": {
-      "indicator_id": 273,
-      "indicator_name": "Global Branded NAND Flash Manufacturers' Revenue: Total",
-      "unit": "Millions of USD",
-      "freq": "Q",
-      "last_check_date": "2024-12-31T16:00:00.000Z",
-      "last_check_value": "13162.8201",
-      "history": [
-        {
-          "date": "2022-12-31T16:00:00.000Z",
-          "value": "8320.7842"
-        },
-        {
-          "date": "2023-03-31T16:00:00.000Z",
-          "value": "8972.5787"
-        },
-        {
-          "date": "2023-06-30T16:00:00.000Z",
-          "value": "9229.1392"
-        },
-        {
-          "date": "2023-09-30T16:00:00.000Z",
-          "value": "11485.7646"
-        },
-        {
-          "date": "2023-12-31T16:00:00.000Z",
-          "value": "14709.576"
-        },
-        {
-          "date": "2024-03-31T16:00:00.000Z",
-          "value": "16796.603"
-        },
-        {
-          "date": "2024-06-30T16:00:00.000Z",
-          "value": "17607.5049"
-        },
-        {
-          "date": "2024-09-30T16:00:00.000Z",
-          "value": "16521.6031"
+          "date": "2025-12-31T16:00:00.000Z",
+          "value": "34.336"
         }
       ]
     },
@@ -295,6 +211,48 @@
         }
       ]
     },
+    "205": {
+      "indicator_id": 205,
+      "indicator_name": "DRAM Makers' Capex: Total",
+      "unit": "Millions of USD",
+      "freq": "Y",
+      "last_check_date": "2023-12-31T16:00:00.000Z",
+      "last_check_value": "29734.2773",
+      "history": [
+        {
+          "date": "2015-12-31T16:00:00.000Z",
+          "value": "12124.0131"
+        },
+        {
+          "date": "2016-12-31T16:00:00.000Z",
+          "value": "14628.0407"
+        },
+        {
+          "date": "2017-12-31T16:00:00.000Z",
+          "value": "19381.7409"
+        },
+        {
+          "date": "2018-12-31T16:00:00.000Z",
+          "value": "19091.2786"
+        },
+        {
+          "date": "2019-12-31T16:00:00.000Z",
+          "value": "18953.8156"
+        },
+        {
+          "date": "2020-12-31T16:00:00.000Z",
+          "value": "28047.8772"
+        },
+        {
+          "date": "2021-12-31T16:00:00.000Z",
+          "value": "30035.931"
+        },
+        {
+          "date": "2022-12-31T16:00:00.000Z",
+          "value": "19976.7532"
+        }
+      ]
+    },
     "279": {
       "indicator_id": 279,
       "indicator_name": "NAND Flash Makers' Capex: Total",
@@ -337,81 +295,45 @@
         }
       ]
     },
-    "1848": {
-      "indicator_id": 1848,
-      "indicator_name": "WSTS Semiconductor Sales Amount: Predicted Value -- Japan",
-      "unit": "million USD",
-      "freq": "Y",
-      "last_check_date": "2025-11-30T16:00:00.000Z",
-      "last_check_value": "50578",
+    "273": {
+      "indicator_id": 273,
+      "indicator_name": "Global Branded NAND Flash Manufacturers' Revenue: Total",
+      "unit": "Millions of USD",
+      "freq": "Q",
+      "last_check_date": "2024-12-31T16:00:00.000Z",
+      "last_check_value": "13162.8201",
       "history": [
         {
-          "date": "2021-11-30T16:00:00.000Z",
-          "value": "43581"
+          "date": "2022-12-31T16:00:00.000Z",
+          "value": "8320.7842"
         },
         {
-          "date": "2022-11-30T16:00:00.000Z",
-          "value": "48064"
+          "date": "2023-03-31T16:00:00.000Z",
+          "value": "8972.5787"
         },
         {
-          "date": "2023-11-30T16:00:00.000Z",
-          "value": "48724"
+          "date": "2023-06-30T16:00:00.000Z",
+          "value": "9229.1392"
         },
         {
-          "date": "2024-11-30T16:00:00.000Z",
-          "value": "46254"
-        }
-      ]
-    },
-    "1849": {
-      "indicator_id": 1849,
-      "indicator_name": "WSTS Semiconductor Sales Amount: Predicted Value -- Asia Pacific",
-      "unit": "million USD",
-      "freq": "Y",
-      "last_check_date": "2025-11-30T16:00:00.000Z",
-      "last_check_value": "382961",
-      "history": [
-        {
-          "date": "2021-11-30T16:00:00.000Z",
-          "value": "343419"
+          "date": "2023-09-30T16:00:00.000Z",
+          "value": "11485.7646"
         },
         {
-          "date": "2022-11-30T16:00:00.000Z",
-          "value": "336151"
+          "date": "2023-12-31T16:00:00.000Z",
+          "value": "14709.576"
         },
         {
-          "date": "2023-11-30T16:00:00.000Z",
-          "value": "280881"
+          "date": "2024-03-31T16:00:00.000Z",
+          "value": "16796.603"
         },
         {
-          "date": "2024-11-30T16:00:00.000Z",
-          "value": "340877"
-        }
-      ]
-    },
-    "1847": {
-      "indicator_id": 1847,
-      "indicator_name": "WSTS Semiconductor Sales Amount: Predicted Value -- Europe",
-      "unit": "million USD",
-      "freq": "Y",
-      "last_check_date": "2025-11-30T16:00:00.000Z",
-      "last_check_value": "60901",
-      "history": [
-        {
-          "date": "2021-11-30T16:00:00.000Z",
-          "value": "47126"
+          "date": "2024-06-30T16:00:00.000Z",
+          "value": "17607.5049"
         },
         {
-          "date": "2022-11-30T16:00:00.000Z",
-          "value": "53774"
-        },
-        {
-          "date": "2023-11-30T16:00:00.000Z",
-          "value": "57253"
-        },
-        {
-          "date": "2024-11-30T16:00:00.000Z",
-          "value": "56038"
+          "date": "2024-09-30T16:00:00.000Z",
+          "value": "16521.6031"
         }
       ]
     },
@@ -454,6 +376,110 @@
         {
           "date": "2024-11-30T16:00:00.000Z",
           "value": "168062"
+        }
+      ]
+    },
+    "1847": {
+      "indicator_id": 1847,
+      "indicator_name": "WSTS Semiconductor Sales Amount: Predicted Value -- Europe",
+      "unit": "million USD",
+      "freq": "Y",
+      "last_check_date": "2025-11-30T16:00:00.000Z",
+      "last_check_value": "60901",
+      "history": [
+        {
+          "date": "2021-11-30T16:00:00.000Z",
+          "value": "47126"
+        },
+        {
+          "date": "2022-11-30T16:00:00.000Z",
+          "value": "53774"
+        },
+        {
+          "date": "2023-11-30T16:00:00.000Z",
+          "value": "57253"
+        },
+        {
+          "date": "2024-11-30T16:00:00.000Z",
+          "value": "56038"
+        }
+      ]
+    },
+    "1849": {
+      "indicator_id": 1849,
+      "indicator_name": "WSTS Semiconductor Sales Amount: Predicted Value -- Asia Pacific",
+      "unit": "million USD",
+      "freq": "Y",
+      "last_check_date": "2025-11-30T16:00:00.000Z",
+      "last_check_value": "382961",
+      "history": [
+        {
+          "date": "2021-11-30T16:00:00.000Z",
+          "value": "343419"
+        },
+        {
+          "date": "2022-11-30T16:00:00.000Z",
+          "value": "336151"
+        },
+        {
+          "date": "2023-11-30T16:00:00.000Z",
+          "value": "280881"
+        },
+        {
+          "date": "2024-11-30T16:00:00.000Z",
+          "value": "340877"
+        }
+      ]
+    },
+    "1848": {
+      "indicator_id": 1848,
+      "indicator_name": "WSTS Semiconductor Sales Amount: Predicted Value -- Japan",
+      "unit": "million USD",
+      "freq": "Y",
+      "last_check_date": "2025-11-30T16:00:00.000Z",
+      "last_check_value": "50578",
+      "history": [
+        {
+          "date": "2021-11-30T16:00:00.000Z",
+          "value": "43581"
+        },
+        {
+          "date": "2022-11-30T16:00:00.000Z",
+          "value": "48064"
+        },
+        {
+          "date": "2023-11-30T16:00:00.000Z",
+          "value": "48724"
+        },
+        {
+          "date": "2024-11-30T16:00:00.000Z",
+          "value": "46254"
+        }
+      ]
+    },
+    "1850": {
+      "indicator_id": 1850,
+      "indicator_name": "WSTS Semiconductor Sales Amount: Predicted Value -- Total World",
+      "unit": "million USD",
+      "freq": "Y",
+      "last_check_date": "2025-11-30T16:00:00.000Z",
+      "last_check_value": "687380",
+      "history": [
+        {
+          "date": "2021-11-30T16:00:00.000Z",
+          "value": "552961"
+        },
+        {
+          "date": "2022-11-30T16:00:00.000Z",
+          "value": "580126"
+        },
+        {
+          "date": "2023-11-30T16:00:00.000Z",
+          "value": "515095"
+        },
+        {
+          "date": "2024-11-30T16:00:00.000Z",
+          "value": "611231"
         }
       ]
     },
@@ -534,32 +560,6 @@
         {
           "date": "2014-06-30T16:00:00.000Z",
           "value": "150"
-        }
-      ]
-    },
-    "1850": {
-      "indicator_id": 1850,
-      "indicator_name": "WSTS Semiconductor Sales Amount: Predicted Value -- Total World",
-      "unit": "million USD",
-      "freq": "Y",
-      "last_check_date": "2025-11-30T16:00:00.000Z",
-      "last_check_value": "687380",
-      "history": [
-        {
-          "date": "2021-11-30T16:00:00.000Z",
-          "value": "552961"
-        },
-        {
-          "date": "2022-11-30T16:00:00.000Z",
-          "value": "580126"
-        },
-        {
-          "date": "2023-11-30T16:00:00.000Z",
-          "value": "515095"
-        },
-        {
-          "date": "2024-11-30T16:00:00.000Z",
-          "value": "611231"
         }
       ]
     },
@@ -815,36 +815,6 @@
         }
       ]
     },
-    "4236": {
-      "indicator_id": 4236,
-      "indicator_name": "NAND Flash Makers' Capex: Kioxia/SanDisk",
-      "unit": "Millions of USD",
-      "freq": "Y",
-      "last_check_date": "2024-12-31T16:00:00.000Z",
-      "last_check_value": "3200",
-      "history": [
-        {
-          "date": "2019-12-31T16:00:00.000Z",
-          "value": "3800"
-        },
-        {
-          "date": "2020-12-31T16:00:00.000Z",
-          "value": "3700"
-        },
-        {
-          "date": "2021-12-31T16:00:00.000Z",
-          "value": "4650"
-        },
-        {
-          "date": "2022-12-31T16:00:00.000Z",
-          "value": "1800"
-        },
-        {
-          "date": "2023-12-31T16:00:00.000Z",
-          "value": "2300"
-        }
-      ]
-    },
     "4235": {
       "indicator_id": 4235,
       "indicator_name": "NAND Flash Makers' Capex: Toshiba/SanDisk",
@@ -884,6 +854,36 @@
         {
           "date": "2017-12-31T16:00:00.000Z",
           "value": "4880"
+        }
+      ]
+    },
+    "4236": {
+      "indicator_id": 4236,
+      "indicator_name": "NAND Flash Makers' Capex: Kioxia/SanDisk",
+      "unit": "Millions of USD",
+      "freq": "Y",
+      "last_check_date": "2024-12-31T16:00:00.000Z",
+      "last_check_value": "3200",
+      "history": [
+        {
+          "date": "2019-12-31T16:00:00.000Z",
+          "value": "3800"
+        },
+        {
+          "date": "2020-12-31T16:00:00.000Z",
+          "value": "3700"
+        },
+        {
+          "date": "2021-12-31T16:00:00.000Z",
+          "value": "4650"
+        },
+        {
+          "date": "2022-12-31T16:00:00.000Z",
+          "value": "1800"
+        },
+        {
+          "date": "2023-12-31T16:00:00.000Z",
+          "value": "2300"
         }
       ]
     },
@@ -971,48 +971,6 @@
         }
       ]
     },
-    "3313": {
-      "indicator_id": 3313,
-      "indicator_name": "United States: Treasury Yield - 3-Month",
-      "unit": "%",
-      "freq": "D",
-      "last_check_date": "2026-03-04T16:00:00.000Z",
-      "last_check_value": "3.7",
-      "history": [
-        {
-          "date": "2026-02-22T16:00:00.000Z",
-          "value": "3.69"
-        },
-        {
-          "date": "2026-02-23T16:00:00.000Z",
-          "value": "3.69"
-        },
-        {
-          "date": "2026-02-24T16:00:00.000Z",
-          "value": "3.69"
-        },
-        {
-          "date": "2026-02-25T16:00:00.000Z",
-          "value": "3.68"
-        },
-        {
-          "date": "2026-02-26T16:00:00.000Z",
-          "value": "3.67"
-        },
-        {
-          "date": "2026-03-01T16:00:00.000Z",
-          "value": "3.72"
-        },
-        {
-          "date": "2026-03-02T16:00:00.000Z",
-          "value": "3.71"
-        },
-        {
-          "date": "2026-03-03T16:00:00.000Z",
-          "value": "3.71"
-        }
-      ]
-    },
     "3308": {
       "indicator_id": 3308,
       "indicator_name": "United States: Federal Funds Rate - Effective Federal Funds Rate",
@@ -1052,6 +1010,48 @@
         {
           "date": "2026-03-02T16:00:00.000Z",
           "value": "3.64"
+        }
+      ]
+    },
+    "3313": {
+      "indicator_id": 3313,
+      "indicator_name": "United States: Treasury Yield - 3-Month",
+      "unit": "%",
+      "freq": "D",
+      "last_check_date": "2026-03-04T16:00:00.000Z",
+      "last_check_value": "3.7",
+      "history": [
+        {
+          "date": "2026-02-22T16:00:00.000Z",
+          "value": "3.69"
+        },
+        {
+          "date": "2026-02-23T16:00:00.000Z",
+          "value": "3.69"
+        },
+        {
+          "date": "2026-02-24T16:00:00.000Z",
+          "value": "3.69"
+        },
+        {
+          "date": "2026-02-25T16:00:00.000Z",
+          "value": "3.68"
+        },
+        {
+          "date": "2026-02-26T16:00:00.000Z",
+          "value": "3.67"
+        },
+        {
+          "date": "2026-03-01T16:00:00.000Z",
+          "value": "3.72"
+        },
+        {
+          "date": "2026-03-02T16:00:00.000Z",
+          "value": "3.71"
+        },
+        {
+          "date": "2026-03-03T16:00:00.000Z",
+          "value": "3.71"
         }
       ]
     },
@@ -1139,6 +1139,48 @@
         }
       ]
     },
+    "3316": {
+      "indicator_id": 3316,
+      "indicator_name": "United States: Treasury Yield - 10-Year",
+      "unit": "%",
+      "freq": "D",
+      "last_check_date": "2026-03-04T16:00:00.000Z",
+      "last_check_value": "4.13",
+      "history": [
+        {
+          "date": "2026-02-22T16:00:00.000Z",
+          "value": "4.03"
+        },
+        {
+          "date": "2026-02-23T16:00:00.000Z",
+          "value": "4.04"
+        },
+        {
+          "date": "2026-02-24T16:00:00.000Z",
+          "value": "4.05"
+        },
+        {
+          "date": "2026-02-25T16:00:00.000Z",
+          "value": "4.02"
+        },
+        {
+          "date": "2026-02-26T16:00:00.000Z",
+          "value": "3.97"
+        },
+        {
+          "date": "2026-03-01T16:00:00.000Z",
+          "value": "4.05"
+        },
+        {
+          "date": "2026-03-02T16:00:00.000Z",
+          "value": "4.06"
+        },
+        {
+          "date": "2026-03-03T16:00:00.000Z",
+          "value": "4.09"
+        }
+      ]
+    },
     "3296": {
       "indicator_id": 3296,
       "indicator_name": "United States: M1",
@@ -1178,48 +1220,6 @@
         {
           "date": "2025-11-30T16:00:00.000Z",
           "value": "19276.4"
-        }
-      ]
-    },
-    "3317": {
-      "indicator_id": 3317,
-      "indicator_name": "United States: Treasury Yield: 20-Year",
-      "unit": "%",
-      "freq": "D",
-      "last_check_date": "2026-03-04T16:00:00.000Z",
-      "last_check_value": "4.71",
-      "history": [
-        {
-          "date": "2026-02-22T16:00:00.000Z",
-          "value": "4.63"
-        },
-        {
-          "date": "2026-02-23T16:00:00.000Z",
-          "value": "4.63"
-        },
-        {
-          "date": "2026-02-24T16:00:00.000Z",
-          "value": "4.63"
-        },
-        {
-          "date": "2026-02-25T16:00:00.000Z",
-          "value": "4.6"
-        },
-        {
-          "date": "2026-02-26T16:00:00.000Z",
-          "value": "4.57"
-        },
-        {
-          "date": "2026-03-01T16:00:00.000Z",
-          "value": "4.64"
-        },
-        {
-          "date": "2026-03-02T16:00:00.000Z",
-          "value": "4.65"
-        },
-        {
-          "date": "2026-03-03T16:00:00.000Z",
-          "value": "4.67"
         }
       ]
     },
@@ -1265,45 +1265,45 @@
         }
       ]
     },
-    "3316": {
-      "indicator_id": 3316,
-      "indicator_name": "United States: Treasury Yield - 10-Year",
+    "3317": {
+      "indicator_id": 3317,
+      "indicator_name": "United States: Treasury Yield: 20-Year",
       "unit": "%",
       "freq": "D",
       "last_check_date": "2026-03-04T16:00:00.000Z",
-      "last_check_value": "4.13",
+      "last_check_value": "4.71",
       "history": [
         {
           "date": "2026-02-22T16:00:00.000Z",
-          "value": "4.03"
+          "value": "4.63"
         },
         {
           "date": "2026-02-23T16:00:00.000Z",
-          "value": "4.04"
+          "value": "4.63"
         },
         {
           "date": "2026-02-24T16:00:00.000Z",
-          "value": "4.05"
+          "value": "4.63"
         },
         {
           "date": "2026-02-25T16:00:00.000Z",
-          "value": "4.02"
+          "value": "4.6"
         },
         {
           "date": "2026-02-26T16:00:00.000Z",
-          "value": "3.97"
+          "value": "4.57"
         },
         {
           "date": "2026-03-01T16:00:00.000Z",
-          "value": "4.05"
+          "value": "4.64"
         },
         {
           "date": "2026-03-02T16:00:00.000Z",
-          "value": "4.06"
+          "value": "4.65"
         },
         {
           "date": "2026-03-03T16:00:00.000Z",
-          "value": "4.09"
+          "value": "4.67"
         }
       ]
     },
@@ -1349,48 +1349,6 @@
         }
       ]
     },
-    "3509": {
-      "indicator_id": 3509,
-      "indicator_name": "China: Financial Deepening (M2/GDP)",
-      "unit": "%",
-      "freq": "Y",
-      "last_check_date": "2025-11-30T16:00:00.000Z",
-      "last_check_value": "242.7456",
-      "history": [
-        {
-          "date": "2017-11-30T16:00:00.000Z",
-          "value": "203.1445"
-        },
-        {
-          "date": "2018-11-30T16:00:00.000Z",
-          "value": "198.7144"
-        },
-        {
-          "date": "2019-11-30T16:00:00.000Z",
-          "value": "201.3642"
-        },
-        {
-          "date": "2020-11-30T16:00:00.000Z",
-          "value": "215.7525"
-        },
-        {
-          "date": "2021-11-30T16:00:00.000Z",
-          "value": "207.3462"
-        },
-        {
-          "date": "2022-11-30T16:00:00.000Z",
-          "value": "221.1561"
-        },
-        {
-          "date": "2023-11-30T16:00:00.000Z",
-          "value": "231.8543"
-        },
-        {
-          "date": "2024-11-30T16:00:00.000Z",
-          "value": "232.38"
-        }
-      ]
-    },
     "3238": {
       "indicator_id": 3238,
       "indicator_name": "LIBOR: USD: Overnight",
@@ -1433,45 +1391,87 @@
         }
       ]
     },
-    "3240": {
-      "indicator_id": 3240,
-      "indicator_name": "LIBOR: Euro: Overnight",
+    "3509": {
+      "indicator_id": 3509,
+      "indicator_name": "China: Financial Deepening (M2/GDP)",
       "unit": "%",
-      "freq": "D",
-      "last_check_date": "2021-12-30T16:00:00.000Z",
-      "last_check_value": "-0.6496",
+      "freq": "Y",
+      "last_check_date": "2025-11-30T16:00:00.000Z",
+      "last_check_value": "242.7456",
       "history": [
         {
-          "date": "2021-12-16T16:00:00.000Z",
-          "value": "-0.5897"
+          "date": "2017-11-30T16:00:00.000Z",
+          "value": "203.1445"
         },
         {
-          "date": "2021-12-19T16:00:00.000Z",
-          "value": "-0.5881"
+          "date": "2018-11-30T16:00:00.000Z",
+          "value": "198.7144"
         },
         {
-          "date": "2021-12-20T16:00:00.000Z",
-          "value": "-0.5886"
+          "date": "2019-11-30T16:00:00.000Z",
+          "value": "201.3642"
         },
         {
-          "date": "2021-12-21T16:00:00.000Z",
-          "value": "-0.5881"
+          "date": "2020-11-30T16:00:00.000Z",
+          "value": "215.7525"
         },
         {
-          "date": "2021-12-22T16:00:00.000Z",
-          "value": "-0.5927"
+          "date": "2021-11-30T16:00:00.000Z",
+          "value": "207.3462"
         },
         {
-          "date": "2021-12-23T16:00:00.000Z",
-          "value": "-0.5919"
+          "date": "2022-11-30T16:00:00.000Z",
+          "value": "221.1561"
         },
         {
-          "date": "2021-12-28T16:00:00.000Z",
-          "value": "-0.5907"
+          "date": "2023-11-30T16:00:00.000Z",
+          "value": "231.8543"
         },
         {
-          "date": "2021-12-29T16:00:00.000Z",
-          "value": "-0.586"
+          "date": "2024-11-30T16:00:00.000Z",
+          "value": "232.38"
+        }
+      ]
+    },
+    "5102": {
+      "indicator_id": 5102,
+      "indicator_name": "United States: S&P 500 Volatility Index",
+      "unit": "Index",
+      "freq": "D",
+      "last_check_date": "2026-01-31T16:00:00.000Z",
+      "last_check_value": "19.207",
+      "history": [
+        {
+          "date": "2025-05-31T16:00:00.000Z",
+          "value": "18.4033"
+        },
+        {
+          "date": "2025-06-30T16:00:00.000Z",
+          "value": "16.3813"
+        },
+        {
+          "date": "2025-07-31T16:00:00.000Z",
+          "value": "15.75"
+        },
+        {
+          "date": "2025-08-31T16:00:00.000Z",
+          "value": "15.7891"
+        },
+        {
+          "date": "2025-09-30T16:00:00.000Z",
+          "value": "18.0865"
+        },
+        {
+          "date": "2025-10-31T16:00:00.000Z",
+          "value": "19.7695"
+        },
+        {
+          "date": "2025-11-30T16:00:00.000Z",
+          "value": "15.5482"
+        },
+        {
+          "date": "2025-12-31T16:00:00.000Z",
+          "value": "16.179"
         }
       ]
     },
@@ -1517,45 +1517,45 @@
         }
       ]
     },
-    "5102": {
-      "indicator_id": 5102,
-      "indicator_name": "United States: S&P 500 Volatility Index",
-      "unit": "Index",
+    "3240": {
+      "indicator_id": 3240,
+      "indicator_name": "LIBOR: Euro: Overnight",
+      "unit": "%",
       "freq": "D",
-      "last_check_date": "2026-01-31T16:00:00.000Z",
-      "last_check_value": "19.207",
+      "last_check_date": "2021-12-30T16:00:00.000Z",
+      "last_check_value": "-0.6496",
       "history": [
         {
-          "date": "2025-05-31T16:00:00.000Z",
-          "value": "18.4033"
+          "date": "2021-12-16T16:00:00.000Z",
+          "value": "-0.5897"
         },
         {
-          "date": "2025-06-30T16:00:00.000Z",
-          "value": "16.3813"
+          "date": "2021-12-19T16:00:00.000Z",
+          "value": "-0.5881"
         },
         {
-          "date": "2025-07-31T16:00:00.000Z",
-          "value": "15.75"
+          "date": "2021-12-20T16:00:00.000Z",
+          "value": "-0.5886"
         },
         {
-          "date": "2025-08-31T16:00:00.000Z",
-          "value": "15.7891"
+          "date": "2021-12-21T16:00:00.000Z",
+          "value": "-0.5881"
         },
         {
-          "date": "2025-09-30T16:00:00.000Z",
-          "value": "18.0865"
+          "date": "2021-12-22T16:00:00.000Z",
+          "value": "-0.5927"
         },
         {
-          "date": "2025-10-31T16:00:00.000Z",
-          "value": "19.7695"
+          "date": "2021-12-23T16:00:00.000Z",
+          "value": "-0.5919"
         },
         {
-          "date": "2025-11-30T16:00:00.000Z",
-          "value": "15.5482"
+          "date": "2021-12-28T16:00:00.000Z",
+          "value": "-0.5907"
         },
         {
-          "date": "2025-12-31T16:00:00.000Z",
-          "value": "16.179"
+          "date": "2021-12-29T16:00:00.000Z",
+          "value": "-0.586"
         }
       ]
     },
@@ -1643,48 +1643,6 @@
         }
       ]
     },
-    "3271": {
-      "indicator_id": 3271,
-      "indicator_name": "Intercontinental Exchange (ICE) Metal Commodities Index (IMCI)",
-      "unit": "",
-      "freq": "D",
-      "last_check_date": "2026-03-04T16:00:00.000Z",
-      "last_check_value": "5335.9",
-      "history": [
-        {
-          "date": "2026-02-12T16:00:00.000Z",
-          "value": "5229.34"
-        },
-        {
-          "date": "2026-02-23T16:00:00.000Z",
-          "value": "5316.06"
-        },
-        {
-          "date": "2026-02-24T16:00:00.000Z",
-          "value": "5409.4"
-        },
-        {
-          "date": "2026-02-25T16:00:00.000Z",
-          "value": "5398.42"
-        },
-        {
-          "date": "2026-02-26T16:00:00.000Z",
-          "value": "5489.84"
-        },
-        {
-          "date": "2026-03-01T16:00:00.000Z",
-          "value": "5496.85"
-        },
-        {
-          "date": "2026-03-02T16:00:00.000Z",
-          "value": "5335.77"
-        },
-        {
-          "date": "2026-03-03T16:00:00.000Z",
-          "value": "5370.75"
-        }
-      ]
-    },
     "1897": {
       "indicator_id": 1897,
       "indicator_name": "COMEX: Precious Metal Futures - Copper",
@@ -1724,6 +1682,48 @@
         {
           "date": "2026-03-03T16:00:00.000Z",
           "value": "5.9035"
+        }
+      ]
+    },
+    "3271": {
+      "indicator_id": 3271,
+      "indicator_name": "Intercontinental Exchange (ICE) Metal Commodities Index (IMCI)",
+      "unit": "",
+      "freq": "D",
+      "last_check_date": "2026-03-04T16:00:00.000Z",
+      "last_check_value": "5335.9",
+      "history": [
+        {
+          "date": "2026-02-12T16:00:00.000Z",
+          "value": "5229.34"
+        },
+        {
+          "date": "2026-02-23T16:00:00.000Z",
+          "value": "5316.06"
+        },
+        {
+          "date": "2026-02-24T16:00:00.000Z",
+          "value": "5409.4"
+        },
+        {
+          "date": "2026-02-25T16:00:00.000Z",
+          "value": "5398.42"
+        },
+        {
+          "date": "2026-02-26T16:00:00.000Z",
+          "value": "5489.84"
+        },
+        {
+          "date": "2026-03-01T16:00:00.000Z",
+          "value": "5496.85"
+        },
+        {
+          "date": "2026-03-02T16:00:00.000Z",
+          "value": "5335.77"
+        },
+        {
+          "date": "2026-03-03T16:00:00.000Z",
+          "value": "5370.75"
         }
       ]
     },
@@ -1811,48 +1811,6 @@
         }
       ]
     },
-    "1582": {
-      "indicator_id": 1582,
-      "indicator_name": "Global Industrial Robot Operating Volume: Global",
-      "unit": "thousand sets",
-      "freq": "Y",
-      "last_check_date": "2024-11-30T16:00:00.000Z",
-      "last_check_value": "4663.698",
-      "history": [
-        {
-          "date": "2015-11-30T16:00:00.000Z",
-          "value": "1632"
-        },
-        {
-          "date": "2016-11-30T16:00:00.000Z",
-          "value": "1838"
-        },
-        {
-          "date": "2017-11-30T16:00:00.000Z",
-          "value": "2125"
-        },
-        {
-          "date": "2018-11-30T16:00:00.000Z",
-          "value": "2439.543"
-        },
-        {
-          "date": "2019-11-30T16:00:00.000Z",
-          "value": "2731"
-        },
-        {
-          "date": "2020-11-30T16:00:00.000Z",
-          "value": "3014.879"
-        },
-        {
-          "date": "2022-11-30T16:00:00.000Z",
-          "value": "3903.633"
-        },
-        {
-          "date": "2023-11-30T16:00:00.000Z",
-          "value": "4281.585"
-        }
-      ]
-    },
     "1001": {
       "indicator_id": 1001,
       "indicator_name": "JARA Industrial Robot Shipment Value: By Industry - Automotive & Auto Parts: YoY Growth Rate",
@@ -1892,6 +1850,48 @@
         {
           "date": "2023-11-30T16:00:00.000Z",
           "value": "1.2"
+        }
+      ]
+    },
+    "1582": {
+      "indicator_id": 1582,
+      "indicator_name": "Global Industrial Robot Operating Volume: Global",
+      "unit": "thousand sets",
+      "freq": "Y",
+      "last_check_date": "2024-11-30T16:00:00.000Z",
+      "last_check_value": "4663.698",
+      "history": [
+        {
+          "date": "2015-11-30T16:00:00.000Z",
+          "value": "1632"
+        },
+        {
+          "date": "2016-11-30T16:00:00.000Z",
+          "value": "1838"
+        },
+        {
+          "date": "2017-11-30T16:00:00.000Z",
+          "value": "2125"
+        },
+        {
+          "date": "2018-11-30T16:00:00.000Z",
+          "value": "2439.543"
+        },
+        {
+          "date": "2019-11-30T16:00:00.000Z",
+          "value": "2731"
+        },
+        {
+          "date": "2020-11-30T16:00:00.000Z",
+          "value": "3014.879"
+        },
+        {
+          "date": "2022-11-30T16:00:00.000Z",
+          "value": "3903.633"
+        },
+        {
+          "date": "2023-11-30T16:00:00.000Z",
+          "value": "4281.585"
         }
       ]
     },
@@ -1971,44 +1971,6 @@
         }
       ]
     },
-    "256": {
-      "indicator_id": 256,
-      "indicator_name": "Micro/Mini LED (Self-Emitting Display) Market Revenue",
-      "unit": "Millions of USD",
-      "freq": "Y",
-      "last_check_date": "2023-12-31T16:00:00.000Z",
-      "last_check_value": "229",
-      "history": [
-        {
-          "date": "2016-12-31T16:00:00.000Z",
-          "value": "0.3677"
-        },
-        {
-          "date": "2017-12-31T16:00:00.000Z",
-          "value": "1.1019"
-        },
-        {
-          "date": "2018-12-31T16:00:00.000Z",
-          "value": "4.5752"
-        },
-        {
-          "date": "2019-12-31T16:00:00.000Z",
-          "value": "45.6514"
-        },
-        {
-          "date": "2020-12-31T16:00:00.000Z",
-          "value": "87.3069"
-        },
-        {
-          "date": "2021-12-31T16:00:00.000Z",
-          "value": "90.5474"
-        },
-        {
-          "date": "2022-12-31T16:00:00.000Z",
-          "value": "149"
-        }
-      ]
-    },
     "236": {
       "indicator_id": 236,
       "indicator_name": "LED Market Revenue",
@@ -2048,6 +2010,44 @@
         {
           "date": "2022-12-31T16:00:00.000Z",
           "value": "12609"
+        }
+      ]
+    },
+    "256": {
+      "indicator_id": 256,
+      "indicator_name": "Micro/Mini LED (Self-Emitting Display) Market Revenue",
+      "unit": "Millions of USD",
+      "freq": "Y",
+      "last_check_date": "2023-12-31T16:00:00.000Z",
+      "last_check_value": "229",
+      "history": [
+        {
+          "date": "2016-12-31T16:00:00.000Z",
+          "value": "0.3677"
+        },
+        {
+          "date": "2017-12-31T16:00:00.000Z",
+          "value": "1.1019"
+        },
+        {
+          "date": "2018-12-31T16:00:00.000Z",
+          "value": "4.5752"
+        },
+        {
+          "date": "2019-12-31T16:00:00.000Z",
+          "value": "45.6514"
+        },
+        {
+          "date": "2020-12-31T16:00:00.000Z",
+          "value": "87.3069"
+        },
+        {
+          "date": "2021-12-31T16:00:00.000Z",
+          "value": "90.5474"
+        },
+        {
+          "date": "2022-12-31T16:00:00.000Z",
+          "value": "149"
         }
       ]
     },
@@ -2447,48 +2447,6 @@
         }
       ]
     },
-    "3925": {
-      "indicator_id": 3925,
-      "indicator_name": "Server Shipment: xFusion (x86)",
-      "unit": "K pcs",
-      "freq": "Q",
-      "last_check_date": "2025-09-30T16:00:00.000Z",
-      "last_check_value": "90",
-      "history": [
-        {
-          "date": "2023-09-30T16:00:00.000Z",
-          "value": "100"
-        },
-        {
-          "date": "2023-12-31T16:00:00.000Z",
-          "value": "82"
-        },
-        {
-          "date": "2024-03-31T16:00:00.000Z",
-          "value": "98"
-        },
-        {
-          "date": "2024-06-30T16:00:00.000Z",
-          "value": "100"
-        },
-        {
-          "date": "2024-09-30T16:00:00.000Z",
-          "value": "110"
-        },
-        {
-          "date": "2024-12-31T16:00:00.000Z",
-          "value": "90"
-        },
-        {
-          "date": "2025-03-31T16:00:00.000Z",
-          "value": "100"
-        },
-        {
-          "date": "2025-06-30T16:00:00.000Z",
-          "value": "110"
-        }
-      ]
-    },
     "126": {
       "indicator_id": 126,
       "indicator_name": "Smartphone Production Volume: Total",
@@ -2528,6 +2486,48 @@
         {
           "date": "2024-09-30T16:00:00.000Z",
           "value": "334542"
+        }
+      ]
+    },
+    "3925": {
+      "indicator_id": 3925,
+      "indicator_name": "Server Shipment: xFusion (x86)",
+      "unit": "K pcs",
+      "freq": "Q",
+      "last_check_date": "2025-09-30T16:00:00.000Z",
+      "last_check_value": "90",
+      "history": [
+        {
+          "date": "2023-09-30T16:00:00.000Z",
+          "value": "100"
+        },
+        {
+          "date": "2023-12-31T16:00:00.000Z",
+          "value": "82"
+        },
+        {
+          "date": "2024-03-31T16:00:00.000Z",
+          "value": "98"
+        },
+        {
+          "date": "2024-06-30T16:00:00.000Z",
+          "value": "100"
+        },
+        {
+          "date": "2024-09-30T16:00:00.000Z",
+          "value": "110"
+        },
+        {
+          "date": "2024-12-31T16:00:00.000Z",
+          "value": "90"
+        },
+        {
+          "date": "2025-03-31T16:00:00.000Z",
+          "value": "100"
+        },
+        {
+          "date": "2025-06-30T16:00:00.000Z",
+          "value": "110"
         }
       ]
     },
@@ -2611,48 +2611,6 @@
         }
       ]
     },
-    "4069": {
-      "indicator_id": 4069,
-      "indicator_name": "Notebook Shipments by Brand: HP",
-      "unit": "K pcs",
-      "freq": "Y",
-      "last_check_date": "2024-12-31T16:00:00.000Z",
-      "last_check_value": "42195",
-      "history": [
-        {
-          "date": "2016-12-31T16:00:00.000Z",
-          "value": "39950"
-        },
-        {
-          "date": "2017-12-31T16:00:00.000Z",
-          "value": "41625"
-        },
-        {
-          "date": "2018-12-31T16:00:00.000Z",
-          "value": "42745"
-        },
-        {
-          "date": "2019-12-31T16:00:00.000Z",
-          "value": "51745"
-        },
-        {
-          "date": "2020-12-31T16:00:00.000Z",
-          "value": "60374"
-        },
-        {
-          "date": "2021-12-31T16:00:00.000Z",
-          "value": "40795"
-        },
-        {
-          "date": "2022-12-31T16:00:00.000Z",
-          "value": "39430"
-        },
-        {
-          "date": "2023-12-31T16:00:00.000Z",
-          "value": "40205"
-        }
-      ]
-    },
     "4070": {
       "indicator_id": 4070,
       "indicator_name": "Notebook Shipments by Brand: Lenovo",
@@ -2692,6 +2650,48 @@
         {
           "date": "2023-12-31T16:00:00.000Z",
           "value": "46480"
+        }
+      ]
+    },
+    "4069": {
+      "indicator_id": 4069,
+      "indicator_name": "Notebook Shipments by Brand: HP",
+      "unit": "K pcs",
+      "freq": "Y",
+      "last_check_date": "2024-12-31T16:00:00.000Z",
+      "last_check_value": "42195",
+      "history": [
+        {
+          "date": "2016-12-31T16:00:00.000Z",
+          "value": "39950"
+        },
+        {
+          "date": "2017-12-31T16:00:00.000Z",
+          "value": "41625"
+        },
+        {
+          "date": "2018-12-31T16:00:00.000Z",
+          "value": "42745"
+        },
+        {
+          "date": "2019-12-31T16:00:00.000Z",
+          "value": "51745"
+        },
+        {
+          "date": "2020-12-31T16:00:00.000Z",
+          "value": "60374"
+        },
+        {
+          "date": "2021-12-31T16:00:00.000Z",
+          "value": "40795"
+        },
+        {
+          "date": "2022-12-31T16:00:00.000Z",
+          "value": "39430"
+        },
+        {
+          "date": "2023-12-31T16:00:00.000Z",
+          "value": "40205"
         }
       ]
     },
@@ -2779,48 +2779,6 @@
         }
       ]
     },
-    "2915": {
-      "indicator_id": 2915,
-      "indicator_name": "United States: PPI: Final Demand: Goods Excluding Food and Energy: SA",
-      "unit": "2009=100",
-      "freq": "M",
-      "last_check_date": "2025-12-31T16:00:00.000Z",
-      "last_check_value": "265.546",
-      "history": [
-        {
-          "date": "2025-04-30T16:00:00.000Z",
-          "value": "258.906"
-        },
-        {
-          "date": "2025-05-31T16:00:00.000Z",
-          "value": "259.689"
-        },
-        {
-          "date": "2025-06-30T16:00:00.000Z",
-          "value": "260.324"
-        },
-        {
-          "date": "2025-07-31T16:00:00.000Z",
-          "value": "261.069"
-        },
-        {
-          "date": "2025-08-31T16:00:00.000Z",
-          "value": "261.661"
-        },
-        {
-          "date": "2025-09-30T16:00:00.000Z",
-          "value": "262.953"
-        },
-        {
-          "date": "2025-10-31T16:00:00.000Z",
-          "value": "263.565"
-        },
-        {
-          "date": "2025-11-30T16:00:00.000Z",
-          "value": "264.482"
-        }
-      ]
-    },
     "3321": {
       "indicator_id": 3321,
       "indicator_name": "USD/CNY",
@@ -2860,48 +2818,6 @@
         {
           "date": "2026-02-25T16:00:00.000Z",
           "value": "6.8409"
-        }
-      ]
-    },
-    "1037": {
-      "indicator_id": 1037,
-      "indicator_name": "United States: Trade in Goods and Services (YoY) - Total Value of Imports",
-      "unit": "%",
-      "freq": "M",
-      "last_check_date": "2025-11-30T16:00:00.000Z",
-      "last_check_value": "-2.599",
-      "history": [
-        {
-          "date": "2025-03-31T16:00:00.000Z",
-          "value": "3.3826"
-        },
-        {
-          "date": "2025-04-30T16:00:00.000Z",
-          "value": "3.2658"
-        },
-        {
-          "date": "2025-05-31T16:00:00.000Z",
-          "value": "-1.3946"
-        },
-        {
-          "date": "2025-06-30T16:00:00.000Z",
-          "value": "2.5792"
-        },
-        {
-          "date": "2025-07-31T16:00:00.000Z",
-          "value": "-1.8883"
-        },
-        {
-          "date": "2025-08-31T16:00:00.000Z",
-          "value": "-3.6747"
-        },
-        {
-          "date": "2025-09-30T16:00:00.000Z",
-          "value": "-3.6029"
-        },
-        {
-          "date": "2025-10-31T16:00:00.000Z",
-          "value": "-1.8851"
         }
       ]
     },
@@ -2947,6 +2863,48 @@
         }
       ]
     },
+    "1456": {
+      "indicator_id": 1456,
+      "indicator_name": "US Dollar Index",
+      "unit": "March, 1973=100",
+      "freq": "D",
+      "last_check_date": "2026-03-04T16:00:00.000Z",
+      "last_check_value": "99.04",
+      "history": [
+        {
+          "date": "2026-02-22T16:00:00.000Z",
+          "value": "97.737"
+        },
+        {
+          "date": "2026-02-23T16:00:00.000Z",
+          "value": "97.902"
+        },
+        {
+          "date": "2026-02-24T16:00:00.000Z",
+          "value": "97.661"
+        },
+        {
+          "date": "2026-02-25T16:00:00.000Z",
+          "value": "97.795"
+        },
+        {
+          "date": "2026-02-26T16:00:00.000Z",
+          "value": "97.653"
+        },
+        {
+          "date": "2026-03-01T16:00:00.000Z",
+          "value": "98.5526"
+        },
+        {
+          "date": "2026-03-02T16:00:00.000Z",
+          "value": "99.06"
+        },
+        {
+          "date": "2026-03-03T16:00:00.000Z",
+          "value": "98.801"
+        }
+      ]
+    },
     "3322": {
       "indicator_id": 3322,
       "indicator_name": "Exchange Rate: EUR/USD",
@@ -2986,6 +2944,90 @@
         {
           "date": "2026-02-25T16:00:00.000Z",
           "value": "1.1792"
+        }
+      ]
+    },
+    "2915": {
+      "indicator_id": 2915,
+      "indicator_name": "United States: PPI: Final Demand: Goods Excluding Food and Energy: SA",
+      "unit": "2009=100",
+      "freq": "M",
+      "last_check_date": "2025-12-31T16:00:00.000Z",
+      "last_check_value": "265.546",
+      "history": [
+        {
+          "date": "2025-04-30T16:00:00.000Z",
+          "value": "258.906"
+        },
+        {
+          "date": "2025-05-31T16:00:00.000Z",
+          "value": "259.689"
+        },
+        {
+          "date": "2025-06-30T16:00:00.000Z",
+          "value": "260.324"
+        },
+        {
+          "date": "2025-07-31T16:00:00.000Z",
+          "value": "261.069"
+        },
+        {
+          "date": "2025-08-31T16:00:00.000Z",
+          "value": "261.661"
+        },
+        {
+          "date": "2025-09-30T16:00:00.000Z",
+          "value": "262.953"
+        },
+        {
+          "date": "2025-10-31T16:00:00.000Z",
+          "value": "263.565"
+        },
+        {
+          "date": "2025-11-30T16:00:00.000Z",
+          "value": "264.482"
+        }
+      ]
+    },
+    "1037": {
+      "indicator_id": 1037,
+      "indicator_name": "United States: Trade in Goods and Services (YoY) - Total Value of Imports",
+      "unit": "%",
+      "freq": "M",
+      "last_check_date": "2025-11-30T16:00:00.000Z",
+      "last_check_value": "-2.599",
+      "history": [
+        {
+          "date": "2025-03-31T16:00:00.000Z",
+          "value": "3.3826"
+        },
+        {
+          "date": "2025-04-30T16:00:00.000Z",
+          "value": "3.2658"
+        },
+        {
+          "date": "2025-05-31T16:00:00.000Z",
+          "value": "-1.3946"
+        },
+        {
+          "date": "2025-06-30T16:00:00.000Z",
+          "value": "2.5792"
+        },
+        {
+          "date": "2025-07-31T16:00:00.000Z",
+          "value": "-1.8883"
+        },
+        {
+          "date": "2025-08-31T16:00:00.000Z",
+          "value": "-3.6747"
+        },
+        {
+          "date": "2025-09-30T16:00:00.000Z",
+          "value": "-3.6029"
+        },
+        {
+          "date": "2025-10-31T16:00:00.000Z",
+          "value": "-1.8851"
         }
       ]
     },
@@ -3200,5 +3242,5 @@
       ]
     }
   },
-  "last_run": "2026-03-06T19:05:38.465981+00:00"
+  "last_run": "2026-03-06T19:27:52.389062+00:00"
 }

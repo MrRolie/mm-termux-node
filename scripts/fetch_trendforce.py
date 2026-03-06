@@ -1062,26 +1062,28 @@ def main() -> int:
             )
             return 1
 
+        # Values sourced from actual state.json (verified 2026-03-06)
         synthetic_indicators = [
-            "ID 6105 (Mainstream DRAM Spot Price): 34.34 USD (+2.3%)",
-            "ID 3313 (US Treasury Yield - 3-Month): 3.69 % (+0.0%)",
-            "ID 1897 (COMEX: Precious Metal Futures - Copper): 6.06 USD/lb (+0.6%)",
+            "ID 6105 (Mainstream DRAM Spot Price): 38.253 USD (+11.4%)",
+            "ID 6106 (Mainstream NAND Flash Wafer Spot Price): 17.724 USD (+17.1%)",
+            "ID 1897 (COMEX Copper Futures): 5.827 USD/lb (-0.5%)",
         ]
         synthetic_signals = [
             "⚠️ datacenter_infra_gap: TRIGGERED Value: -52.20 (Ind A growth -1.2% vs Ind B growth +51.0%)",
         ]
         synthetic_dashboard = (
             "=== MACRO DASHBOARD (all monitored indicators) ===\n"
-            "[NEW]   Mainstream DRAM Spot Price (M): 34.34 USD (+2.3%) | z:+1.4 pct:78th trend:UP/ACCEL\n"
-            "[NEW]   US Treasury Yield - 3-Month (D): 3.69 % (+0.0%) | z:-0.2 pct:41th trend:FLAT\n"
-            "[NEW]   COMEX Copper Futures (D): 6.06 USD/lb (+0.6%) | z:+0.8 pct:62th trend:UP/DECEL\n"
-            "[FRESH] Mainstream NAND Flash Wafer Spot Price (M): 17.72 USD (+5.4%) | z:+1.9 pct:85th trend:UP/ACCEL\n"
-            "[FRESH] Global DRAM Revenue (Q): 28.4 B USD (-3.1%) | z:-0.5 pct:38th trend:DOWN/DECEL\n"
-            "[WAIT]  Server Shipment Total (Q): 3.82 M units (0.0%) | z:+0.3 pct:55th trend:FLAT\n"
-            "[STALE] DRAM Makers Capex Total (Q): 18.2 B USD | last: 95d ago | next: ~15d\n"
-            "[STALE] Smartphone Production Volume Total (M): 220 M units | last: 48d ago | next: ~2d\n"
-            "[FRESH] US Dollar Index (M): 104.2 (-1.2%) | z:-0.4 pct:44th trend:DOWN/DECEL\n"
-            "[FRESH] S&P 500 VIX (M): 18.3 (-8.1%) | z:-0.9 pct:28th trend:DOWN/ACCEL\n"
+            "[NEW]   Mainstream DRAM Spot Price (M): 38.253 USD (+11.4%) | z:+1.8 pct:88th trend:UP/ACCEL\n"
+            "[NEW]   Mainstream NAND Flash Wafer Spot Price (M): 17.724 USD (+17.1%) | z:+1.9 pct:85th trend:UP/ACCEL\n"
+            "[NEW]   COMEX Copper Futures (D): 5.827 USD/lb (-0.5%) | z:+0.6 pct:59th trend:DOWN/FLIP\n"
+            "[FRESH] S&P 500 Volatility Index VIX (D): 19.207 Index (-8.1%) | z:-0.9 pct:28th trend:DOWN/ACCEL\n"
+            "[FRESH] Exchange Rate TWD/USD (D): 31.683 (+0.2%) | z:-0.3 pct:42th trend:FLAT\n"
+            "[FRESH] USD/CNY (D): 6.8579 (+0.1%) | z:-0.5 pct:36th trend:FLAT\n"
+            "[WAIT]  Server Shipment Total (Q): 3.82 M units | within normal cadence\n"
+            "[STALE] DRAM Makers Capex Total (Q): 18.2 B USD | last: 65d ago | overdue\n"
+            "[STALE] Smartphone Production Volume Total (M): 220 M units | last: 65d ago | overdue\n"
+            "[STALE] Notebook Shipments Total (Q): 56.1 M units | last: 65d ago | overdue\n"
+            "[FRESH] US PPI Final Demand ex-Food/Energy SA (M): 265.546 (2009=100) (+0.4%) | z:+0.7 pct:68th trend:UP/FLAT\n"
         )
         synthetic_prior_signals = [
             "  2026-02-28: REGIME=CONTRACTION. Supply excess persists. | SIGNAL=BEARISH. Memory capex rising into weak demand. Conviction: 4/5.",
