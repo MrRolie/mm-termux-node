@@ -24,47 +24,49 @@ if genai is None:
 
 LOGGER = logging.getLogger("trendforce_ai")
 
-PROMPT_TEMPLATE = """
-You are the "TrendForce Sentinel," a quantitative trading assistant for a financial engineer. 
-Your goal is to strip away noise and deliver a high-signal, blunt summary of semiconductor and macro market changes.
+_LEAD_LAG_CONTEXT = """KNOWN LEAD-LAG RELATIONSHIPS (use to project forward signals):
+- China PMI leads semiconductor end-demand by 1-2 months
+- Memory maker capex leads spot price direction by 6-9 months (inverse: capex cuts mean spot rises later)
+- Smartphone/notebook shipment growth leads NAND/DRAM spot demand by 0-2 months
+- DRAM spot acceleration predicts foundry utilization changes in 2-3 months
+- USD strengthening (DXY up) compresses USD-denominated export revenues for TSMC/Samsung/Hynix
+- TWD weakening (TWD/USD falls) pressures TSMC non-USD cost base"""
+
+PROMPT_TEMPLATE = """You are the "TrendForce Sentinel," a cross-asset macro analyst specializing in semiconductor supply chain signals for a financial engineer. Be blunt, data-driven, and cite numbers for every directional call.
+
+{lead_lag_context}
+
+{dashboard_context}
+
+{prior_signals_section}
+TODAY'S UPDATED INDICATORS (new data since last run):
+{formatted_list_of_updated_indicators}
+
+TRIGGERED CUSTOM SIGNALS:
+{list_of_triggered_signals}
+
+OUTPUT FORMAT (use exactly these labels, one per line, plain text, no markdown):
+REGIME: <EXPANSION|PEAK|CONTRACTION|TROUGH|INFLECTION>. One sentence justification.
+SEMI: most significant semiconductor reading with z-score and direction (cite numbers)
+MACRO: most significant macro/FX/trade/yield reading; for any indicator tagged [STALE] in the dashboard write "awaiting release" instead of a directional claim
+DEMAND: end-device shipment or production trend for smartphones, notebooks, or servers only; do not use custom signal values here; if no fresh end-device data write "no fresh end-device data"
+SIGNAL: <BULLISH|BEARISH|NEUTRAL>. One sentence with numeric evidence. Conviction: N/5.
+WATCH: one indicator to monitor next cycle and why (apply lead-lag where relevant)
 
 Rules:
-1. Be blunt: no pleasantries, only data-backed conclusions.
-2. Focus on change: only mention indicators that updated or breached a threshold.
-3. Prioritize alpha: DRAM/NAND spot prices and custom signals (Golden Cross/Supply Squeeze) are priority #1.
-4. Output format: plain text only (no markdown, no bold, no headings with **). Emojis are allowed (📈, 📉, ⚠️).
-5. Keep length under 150 words.
-6. Use numbers as evidence: every directional call must cite the key value/change (%, spread, or level).
-7. Translate evidence into intuitive signal language whenever valid:
-     - explicitly label signal as Bullish / Bearish / Neutral
-     - tie it to the relevant industry, market, or sector (e.g., memory, semiconductors, risk assets, rates).
-
-
-Input Data:
-The following indicators have updated since the last run (Daily/Monthly change % included):
-
-{formatted_list_of_updated_indicators} 
-# ^ Python should format this as: "ID 6105 (DRAM Spot): $X.XX (+5.2%)"
-
-Custom Signal Status:
-{list_of_triggered_signals}
-# ^ Python should format this as: "⚠️ DRAM Golden Cross: TRIGGERED (Spot +15% > Capex -2%)"
-
-Task:
-Draft a Pushover notification summary. 
-- If nothing significant changed, reply only with "📉 No significant alpha signal updates."
-- If there are updates, use this plaintext layout exactly:
-    HEADLINE: 3-4 words summarizing the regime
-    ALPHA: key updates on indicators 6105/6106 or signal breaches with numbers
-    FLOW: significant changes in shipments/revenue/capex with numbers
-    MACRO: only if VIX or yields moved >5%, with numbers
-    SIGNAL: one-line interpretation such as "📈 Bullish for [industry/market/sector]" or "📉 Bearish for [industry/market/sector]", justified by the strongest numeric evidence above. Use Neutral if evidence is mixed.
+- [STALE] in the dashboard means the data release is overdue - do not make directional claims on it
+- A reading of 0% change is NOT stale - it means no movement, not missing data
+- Only cite [FRESH] or [NEW] dashboard data for directional claims
+- Every directional claim must include a number (%, z-score, or level)
+- Total response under 200 words
+- Plain text only, no markdown, no bold. Emojis allowed: 📈 📉 ⚠️
+- If nothing significant changed, output only: "📉 No significant alpha signal updates."
 """
 
 
 # Ordered preference: try each model until one succeeds (handles quota limits per model)
 _NEW_SDK_MODELS = [
-    "gemini-2.0-flash",       # Primary: fast, low cost
+    "gemini-flash-latest",       # Primary: fast, low cost
     "gemini-2.0-flash-lite",  # Fallback: lighter quota
     "gemini-2.5-flash",       # Higher-tier fallback
     "gemini-flash-lite-latest",  # Alias fallback
@@ -92,13 +94,24 @@ def _to_plaintext_summary(text: str | None) -> str | None:
 
 
 def generate_ai_summary(
-    api_key: str, updated_indicators: list[str], triggered_signals: list[str]
+    api_key: str,
+    updated_indicators: list[str],
+    triggered_signals: list[str],
+    dashboard_context: str = "",
+    prior_signals: list[str] | None = None,
 ) -> str | None:
     """Generate daily summary using Google Gemini API.
 
     Supports both the new ``google-genai`` SDK (_GENAI_SDK == "new") and the
     legacy ``google-generativeai`` SDK (_GENAI_SDK == "legacy").
     Automatically falls back through model list on 429/quota errors.
+
+    Args:
+        api_key: Google/Gemini API key.
+        updated_indicators: Indicator lines for indicators with new data.
+        triggered_signals: Custom signal lines that breached thresholds.
+        dashboard_context: Full macro dashboard from build_dashboard_context().
+        prior_signals: Last N signal history lines for LLM continuity.
     """
     if not updated_indicators and not triggered_signals:
         return None
@@ -111,7 +124,20 @@ def generate_ai_summary(
     inds_str = "\n".join(updated_indicators) if updated_indicators else "None"
     sigs_str = "\n".join(triggered_signals) if triggered_signals else "None"
 
+    # Prior signal history section
+    if prior_signals:
+        prior_signals_section = (
+            f"PRIOR SIGNALS (last {len(prior_signals)} run(s)):\n"
+            + "\n".join(prior_signals)
+            + "\n"
+        )
+    else:
+        prior_signals_section = ""
+
     prompt = PROMPT_TEMPLATE.format(
+        lead_lag_context=_LEAD_LAG_CONTEXT,
+        dashboard_context=dashboard_context or "(macro dashboard not available)",
+        prior_signals_section=prior_signals_section,
         formatted_list_of_updated_indicators=inds_str,
         list_of_triggered_signals=sigs_str,
     )

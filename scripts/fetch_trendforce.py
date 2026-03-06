@@ -406,6 +406,183 @@ def _get_indicator_growth(indicator_id: int, state: dict, n_periods: int) -> flo
     return calculate_growth(float(last_value), history, n_periods)
 
 
+# ---------------------------------------------------------------------------
+# Statistical pre-processing
+# ---------------------------------------------------------------------------
+
+# How many days before an indicator is considered STALE for each cadence code
+_CADENCE_STALE_DAYS: dict[str, int] = {"D": 3, "W": 12, "M": 45, "Q": 110, "Y": 420}
+
+
+def compute_stats(values: list[float]) -> dict:
+    """Compute z-score, percentile rank, trend direction, and momentum.
+
+    Takes a list of raw price/level values (chronological order).
+    Requires at least 3 values; returns {} if insufficient data.
+
+    Returns dict with keys (when computable):
+      z_score      - standard deviations from historical mean
+      percentile   - % of historical values below current (0-100)
+      trend        - "UP", "DOWN", or "FLAT" (direction of most recent period)
+      momentum     - "ACCEL" or "DECEL" (only when trend is UP or DOWN)
+      momentum_flip - True when trend direction reversed vs prior period
+    """
+    if len(values) < 3:
+        return {}
+
+    n = len(values)
+    mean = sum(values) / n
+    variance = sum((v - mean) ** 2 for v in values) / n
+    std = math.sqrt(variance)
+    current = values[-1]
+
+    z_score = (current - mean) / std if std > 1e-10 else 0.0
+
+    # Percentile: share of prior observations strictly below current
+    below = sum(1 for v in values[:-1] if v < current)
+    percentile = (below / (n - 1)) * 100.0 if n > 1 else 50.0
+
+    result: dict = {
+        "z_score": round(z_score, 2),
+        "percentile": round(percentile, 0),
+    }
+
+    # Trend and momentum via log-returns (requires positive values)
+    last3 = values[-3:]
+    if all(v > 0 for v in last3):
+        r_recent = math.log(last3[2]) - math.log(last3[1])
+        r_prior = math.log(last3[1]) - math.log(last3[0])
+
+        if abs(r_recent) < 0.005:
+            result["trend"] = "FLAT"
+        elif r_recent > 0:
+            result["trend"] = "UP"
+            result["momentum"] = "ACCEL" if r_recent >= r_prior else "DECEL"
+        else:
+            result["trend"] = "DOWN"
+            result["momentum"] = "ACCEL" if r_recent <= r_prior else "DECEL"
+
+        if r_recent * r_prior < 0:
+            result["momentum_flip"] = True
+
+    return result
+
+
+def build_dashboard_context(state: dict, updated_indicator_ids: set) -> str:
+    """Build a compact macro dashboard string for LLM context.
+
+    Tags each monitored indicator with a freshness label:
+      [NEW]   - updated since the last run (new data arrived)
+      [FRESH] - last update is within the expected cadence window
+      [WAIT]  - within cadence window but no new data yet (silence != stasis)
+      [STALE] - overdue beyond cadence window (possible data delay)
+
+    Appends z-score, percentile rank, and trend metadata where sufficient
+    history exists so the LLM receives analyst-grade context rather than
+    bare numbers.
+    """
+    now = datetime.now(timezone.utc)
+    lines = ["=== MACRO DASHBOARD (all monitored indicators) ==="]
+
+    indicators = state.get("indicators", {})
+    if not indicators:
+        lines.append("(no state yet — first run)")
+        return "\n".join(lines)
+
+    for ind_id_str in sorted(indicators, key=lambda x: int(x)):
+        ind_state = indicators[ind_id_str]
+        ind_id = int(ind_id_str)
+
+        last_val = ind_state.get("last_check_value")
+        if last_val is None:
+            continue
+
+        name = ind_state.get("indicator_name", f"ID {ind_id_str}")
+        unit = ind_state.get("unit", "")
+        freq = (ind_state.get("freq") or "M").upper()
+        last_date_str = ind_state.get("last_check_date")
+        history = ind_state.get("history", [])
+
+        # Freshness tag
+        if ind_id in updated_indicator_ids:
+            freshness = "NEW"
+        elif last_date_str:
+            try:
+                last_dt = datetime.fromisoformat(last_date_str.replace("Z", "+00:00"))
+                days_ago = (now - last_dt).days
+                stale_threshold = _CADENCE_STALE_DAYS.get(freq, 45)
+                freshness = "FRESH" if days_ago <= stale_threshold else "STALE"
+            except Exception:  # noqa: BLE001
+                freshness = "WAIT"
+        else:
+            freshness = "WAIT"
+
+        # Period-over-period % change
+        change_str = ""
+        if history:
+            try:
+                prev = float(history[-1]["value"])
+                curr = float(last_val)
+                if abs(prev) > 1e-10:
+                    pct = ((curr - prev) / abs(prev)) * 100
+                    change_str = f" ({pct:+.1f}%)"
+            except Exception:  # noqa: BLE001
+                pass
+
+        # Statistical annotations
+        stats_str = ""
+        if len(history) >= 3:
+            try:
+                all_vals = [float(h["value"]) for h in history] + [float(last_val)]
+                stats = compute_stats(all_vals)
+                parts = []
+                if "z_score" in stats:
+                    parts.append(f"z:{stats['z_score']:+.1f}")
+                if "percentile" in stats:
+                    parts.append(f"pct:{int(stats['percentile'])}th")
+                if stats.get("trend"):
+                    t = stats["trend"]
+                    if stats.get("momentum") and t != "FLAT":
+                        t += "/" + stats["momentum"]
+                    if stats.get("momentum_flip"):
+                        t += "/FLIP"
+                    parts.append(f"trend:{t}")
+                if parts:
+                    stats_str = " | " + " ".join(parts)
+            except Exception:  # noqa: BLE001
+                pass
+
+        lines.append(
+            f"[{freshness}] {name} ({freq}): {last_val} {unit}{change_str}{stats_str}"
+        )
+
+    return "\n".join(lines)
+
+
+def _save_signal_to_history(state: dict, summary: str, max_entries: int = 7) -> None:
+    """Extract REGIME and SIGNAL lines from LLM output and append to state signal_history."""
+    state.setdefault("signal_history", [])
+
+    regime = ""
+    signal_line = ""
+    for line in summary.split("\n"):
+        stripped = line.strip()
+        if stripped.upper().startswith("REGIME:"):
+            regime = stripped[7:].strip()
+        elif stripped.upper().startswith("SIGNAL:"):
+            signal_line = stripped[7:].strip()
+
+    if regime or signal_line:
+        entry = {
+            "date": datetime.now(timezone.utc).isoformat()[:10],
+            "regime": regime,
+            "signal": signal_line,
+        }
+        state["signal_history"].append(entry)
+        if len(state["signal_history"]) > max_entries:
+            state["signal_history"] = state["signal_history"][-max_entries:]
+
+
 def _calculate_growth_diff(signal_config: dict, state: dict) -> float | None:
     """Calculate difference between two indicators' growth rates."""
     n_periods = signal_config["n_periods"]
@@ -684,12 +861,16 @@ def initialize_indicator_state(
 
 
 def migrate_state(state: dict) -> dict:
-    """Migrate state to latest version (adds signals section)."""
+    """Migrate state to latest version."""
     version = state.get("version", 1)
     if version < 2:
         state.setdefault("signals", {})
         state["version"] = 2
         LOGGER.info("Migrated state from v%d to v2", version)
+    if state.get("version", 2) < 3:
+        state.setdefault("signal_history", [])
+        state["version"] = 3
+        LOGGER.info("Migrated state from v2 to v3")
     return state
 
 
@@ -889,9 +1070,32 @@ def main() -> int:
         synthetic_signals = [
             "⚠️ datacenter_infra_gap: TRIGGERED Value: -52.20 (Ind A growth -1.2% vs Ind B growth +51.0%)",
         ]
+        synthetic_dashboard = (
+            "=== MACRO DASHBOARD (all monitored indicators) ===\n"
+            "[NEW]   Mainstream DRAM Spot Price (M): 34.34 USD (+2.3%) | z:+1.4 pct:78th trend:UP/ACCEL\n"
+            "[NEW]   US Treasury Yield - 3-Month (D): 3.69 % (+0.0%) | z:-0.2 pct:41th trend:FLAT\n"
+            "[NEW]   COMEX Copper Futures (D): 6.06 USD/lb (+0.6%) | z:+0.8 pct:62th trend:UP/DECEL\n"
+            "[FRESH] Mainstream NAND Flash Wafer Spot Price (M): 17.72 USD (+5.4%) | z:+1.9 pct:85th trend:UP/ACCEL\n"
+            "[FRESH] Global DRAM Revenue (Q): 28.4 B USD (-3.1%) | z:-0.5 pct:38th trend:DOWN/DECEL\n"
+            "[WAIT]  Server Shipment Total (Q): 3.82 M units (0.0%) | z:+0.3 pct:55th trend:FLAT\n"
+            "[STALE] DRAM Makers Capex Total (Q): 18.2 B USD | last: 95d ago | next: ~15d\n"
+            "[STALE] Smartphone Production Volume Total (M): 220 M units | last: 48d ago | next: ~2d\n"
+            "[FRESH] US Dollar Index (M): 104.2 (-1.2%) | z:-0.4 pct:44th trend:DOWN/DECEL\n"
+            "[FRESH] S&P 500 VIX (M): 18.3 (-8.1%) | z:-0.9 pct:28th trend:DOWN/ACCEL\n"
+        )
+        synthetic_prior_signals = [
+            "  2026-02-28: REGIME=CONTRACTION. Supply excess persists. | SIGNAL=BEARISH. Memory capex rising into weak demand. Conviction: 4/5.",
+            "  2026-03-01: REGIME=INFLECTION. Spot prices stabilizing. | SIGNAL=NEUTRAL. Mixed signals across demand stack. Conviction: 2/5.",
+        ]
 
         LOGGER.info("[TEST] Calling Gemini for AI summary...")
-        summary = generate_ai_summary(google_key, synthetic_indicators, synthetic_signals)
+        summary = generate_ai_summary(
+            google_key,
+            synthetic_indicators,
+            synthetic_signals,
+            dashboard_context=synthetic_dashboard,
+            prior_signals=synthetic_prior_signals,
+        )
         if not summary:
             LOGGER.error("[TEST] generate_ai_summary returned None - check API key and SDK")
             return 1
@@ -938,11 +1142,16 @@ def main() -> int:
     # Lists for AI summary
     updated_indicators_info: list[str] = []
     triggered_signals_info: list[str] = []
-    
+    updated_indicator_ids: set[int] = set()
+
     new_datapoints_count = 0
     alerts_sent = 0
 
-    max_history = max([cfg["n_periods"] for cfg in indicator_configs.values()]) + 5  # Buffer
+    signal_max_n = max((sc["n_periods"] for sc in signal_configs.values()), default=0)
+    max_history = max(
+        max(cfg["n_periods"] for cfg in indicator_configs.values()),
+        signal_max_n,
+    ) + 5  # Buffer - must cover the largest signal n_periods so history is sufficient on init
 
     with ThreadPoolExecutor(max_workers=concurrency) as executor:
         future_map = {
@@ -983,7 +1192,9 @@ def main() -> int:
             # Check if first run for this indicator
             indicator_key = str(indicator_id)
             if is_first_run or indicator_key not in state["indicators"]:
-                initialize_indicator_state(state, indicator_id, rows, metadata, n_periods)
+                # Use max_history (not n_periods) so signals have enough history to compute
+                # from the very first run, since the API already returns full historical data.
+                initialize_indicator_state(state, indicator_id, rows, metadata, max_history)
                 continue
 
             # Get new datapoints
@@ -998,6 +1209,7 @@ def main() -> int:
             new_datapoints_count += len(new_rows)
 
             # Capture for AI Summary
+            updated_indicator_ids.add(indicator_id)
             try:
                 latest_new_val = float(new_rows[-1]["value"])
                 prev_val_str = ind_state.get("last_check_value")
@@ -1184,9 +1396,40 @@ def main() -> int:
                 ", ".join(["GOOGLE_API_KEY", "GEMINI_API_KEY", "GOOGLE_GENAI_API_KEY"]),
             )
         else:
+            # Build full macro dashboard context (all indicators, freshness-tagged)
+            dashboard_ctx = build_dashboard_context(state, updated_indicator_ids)
+            LOGGER.info(
+                "Dashboard context built: %d indicator lines",
+                dashboard_ctx.count("\n"),
+            )
+
+            # Read rolling signal history for LLM continuity
+            prior_signal_entries = state.get("signal_history", [])[-3:]
+            prior_signals: list[str] = []
+            for entry in prior_signal_entries:
+                date = entry.get("date", "?")
+                regime = entry.get("regime", "")
+                signal = entry.get("signal", "")
+                if regime or signal:
+                    prior_signals.append(f"  {date}: REGIME={regime} | SIGNAL={signal}")
+
             LOGGER.info("Generating AI daily summary from Google Gemini...")
-            summary = generate_ai_summary(google_key, updated_indicators_info, triggered_signals_info)
+            summary = generate_ai_summary(
+                google_key,
+                updated_indicators_info,
+                triggered_signals_info,
+                dashboard_context=dashboard_ctx,
+                prior_signals=prior_signals or None,
+            )
             if summary:
+                # Persist REGIME + SIGNAL to rolling history before saving state
+                state = migrate_state(state)
+                _save_signal_to_history(state, summary)
+                try:
+                    save_state(state_file, state)
+                except Exception as exc:  # noqa: BLE001
+                    LOGGER.warning("Failed to re-save state after signal history update: %s", exc)
+
                 title = "TrendForce Sentinel Daily"
                 LOGGER.info("Sending AI summary to Pushover...")
                 if send_pushover_notification(pushover_user, pushover_token, summary, title, timeout):
